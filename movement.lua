@@ -17,6 +17,7 @@ function M.move_with_errors_handling(n, move_function)
 --does:    tries to apply move_function n times, handling some errors(i.m. trying to kill entities on the way, repeating action)
 --returns: amount of steps done
 	n = n or 1
+  print(n)
 	local i = 0
 	local errors = 0
 	while i < n do
