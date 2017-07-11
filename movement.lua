@@ -44,9 +44,9 @@ function M.alg_modulo(n, mod)
 end
 
 function M.update_relative_position(n, delta)
-  io.write(n, delta)
-  io.write(M.alg_modulo(current_direction + delta, 4) + 1)
-  io.write(directions[M.alg_modulo(current_direction + delta, 4) + 1][1])
+  utils.log(n, delta)
+  utils.log(M.alg_modulo(current_direction + delta, 4) + 1)
+  utils.log(directions[M.alg_modulo(current_direction + delta, 4) + 1][1])
 	cur_x = cur_x + directions[M.alg_modulo(current_direction + delta, 4) + 1][1] * n
 	cur_z = cur_z + directions[M.alg_modulo(current_direction + delta, 4) + 1][2] * n
 end
