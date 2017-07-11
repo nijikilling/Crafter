@@ -17,7 +17,7 @@ function M.move_with_errors_handling(n, move_function)
 --does:    tries to apply move_function n times, handling some errors(i.m. trying to kill entities on the way, repeating action)
 --returns: amount of steps done
 	n = n or 1
-  print(n)
+  io.write(n)
 	local i = 0
 	local errors = 0
 	while i < n do
@@ -44,9 +44,9 @@ function M.alg_modulo(n, mod)
 end
 
 function M.update_relative_position(n, delta)
-  print(n, delta)
-  print(M.alg_modulo(current_direction + delta, 4) + 1)
-  print(directions[M.alg_modulo(current_direction + delta, 4) + 1][1])
+  io.write(n, delta)
+  io.write(M.alg_modulo(current_direction + delta, 4) + 1)
+  io.write(directions[M.alg_modulo(current_direction + delta, 4) + 1][1])
 	cur_x = cur_x + directions[M.alg_modulo(current_direction + delta, 4) + 1][1] * n
 	cur_z = cur_z + directions[M.alg_modulo(current_direction + delta, 4) + 1][2] * n
 end
