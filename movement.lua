@@ -35,7 +35,7 @@ function M.move_with_errors_handling(n, move_function)
 			end
 		end
 	end
-	return i, "success"
+	return n, "success"
 end
 
 function M.alg_modulo(n, mod)
