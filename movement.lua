@@ -43,8 +43,8 @@ function M.alg_modulo(n, mod)
 end
 
 function M.update_relative_position(n, delta)
-	cur_x = cur_x + directions[M.alg_modulo(current_direction + delta, 4)][0] * n
-	cur_z = cur_z + directions[M.alg_modulo(current_direction + delta, 4)][1] * n
+	cur_x = cur_x + directions[M.alg_modulo(current_direction + delta, 4) + 1][1] * n
+	cur_z = cur_z + directions[M.alg_modulo(current_direction + delta, 4) + 1][2] * n
 end
 
 function M.move_forward(n)
