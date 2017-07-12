@@ -116,12 +116,14 @@ end
 
 function movement.move_left(n)
 	movement.rotate_left()
+  utils.log("movement", "called move_left with n = " .. n)
 	local res, reason = movement.move_forward(n)
 	movement.rotate_right()
 	return res, reason
 end
 
 function movement.move_right(n)
+  utils.log("movement", "called move_right with n = " .. n)
 	movement.rotate_right()
 	local res, reason = movement.move_forward(n)
 	movement.rotate_left()
