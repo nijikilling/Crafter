@@ -63,8 +63,9 @@ function movement.alg_modulo(n, mod)
 end
 
 function movement.update_relative_position(n, delta)
-  utils.log(n, delta)
-  utils.log(movement.alg_modulo(movement.current_direction + delta, 4) + 1)
+  utils.log("debug", n)
+  utils.log("debug", delta)
+  utils.log("debug", movement.alg_modulo(movement.current_direction + delta, 4) + 1)
   utils.log(movement.directions[movement.alg_modulo(movement.current_direction + delta, 4) + 1][1])
 	movement.cur_x = movement.cur_x + 
     movement.directions[movement.alg_modulo(movement.current_direction + delta, 4) + 1][1] * n
