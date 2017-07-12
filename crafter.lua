@@ -671,5 +671,9 @@ local function startup_lookaround()
 end
 
 function movement_test()
-    movement.move_forward()
+  movement.move_left(5)
+  movement.move_right(10)
+  movement.go_to_zero()
 end
+
+movement_test()
