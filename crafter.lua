@@ -679,4 +679,5 @@ function movement_test()
   movement.go_to_zero()
 end
 
+utils.clear_log()
 movement_test()
