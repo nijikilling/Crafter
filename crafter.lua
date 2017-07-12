@@ -36,6 +36,7 @@ function movement.move_with_errors_handling(n, move_function)
 --does:    tries to apply move_function n times, handling some errors(i.m. trying to kill entities on the way, repeating action)
 --returns: amount of steps done
 	n = n or 1
+  utils.log("movement", "called with n = " .. n)
   io.write(n)
 	local i = 0
 	local errors = 0
@@ -55,6 +56,7 @@ function movement.move_with_errors_handling(n, move_function)
 			end
 		end
 	end
+  utils.log("movement", "returned res = " .. n)
 	return n, "success"
 end
 
@@ -64,9 +66,9 @@ end
 
 function movement.update_relative_position(n, delta)
   utils.log("debug", n)
-  utils.log("debug", delta)
-  utils.log("debug", movement.alg_modulo(movement.current_direction + delta, 4) + 1)
-  utils.log("debug", movement.directions[movement.alg_modulo(movement.current_direction + delta, 4) + 1][1])
+  --utils.log("debug", delta)
+  --utils.log("debug", movement.alg_modulo(movement.current_direction + delta, 4) + 1)
+  --utils.log("debug", movement.directions[movement.alg_modulo(movement.current_direction + delta, 4) + 1][1])
 	movement.cur_x = movement.cur_x + 
     movement.directions[movement.alg_modulo(movement.current_direction + delta, 4) + 1][1] * n
 	movement.cur_z = movement.cur_z + 
@@ -117,16 +119,14 @@ end
 function movement.move_left(n)
 	movement.rotate_left()
 	local res, reason = movement.move_forward(n)
-  utils.log("movement", "called move_left with n = " .. n .. "and result = " .. res)
-	movement.rotate_right()
+  movement.rotate_right()
 	return res, reason
 end
 
 function movement.move_right(n)
 	movement.rotate_right()
 	local res, reason = movement.move_forward(n)
-  utils.log("movement", "called move_right with n = " .. n .. "and result = " .. res)
-	movement.rotate_left()
+  movement.rotate_left()
 	return res, reason
 end
 
