@@ -2,6 +2,7 @@
 local M = {}
 
 local robot = require("robot")
+local utils = require("utils")
 
 local directions = {{0, 1}, {-1, 0}, {0, -1}, {1, 0}}
 local current_direction = 0
