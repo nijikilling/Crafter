@@ -66,7 +66,7 @@ function movement.update_relative_position(n, delta)
   utils.log("debug", n)
   utils.log("debug", delta)
   utils.log("debug", movement.alg_modulo(movement.current_direction + delta, 4) + 1)
-  utils.log(movement.directions[movement.alg_modulo(movement.current_direction + delta, 4) + 1][1])
+  utils.log("debug", movement.directions[movement.alg_modulo(movement.current_direction + delta, 4) + 1][1])
 	movement.cur_x = movement.cur_x + 
     movement.directions[movement.alg_modulo(movement.current_direction + delta, 4) + 1][1] * n
 	movement.cur_z = movement.cur_z + 
