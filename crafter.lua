@@ -138,13 +138,13 @@ function movement.go_to_pos(pos)
 	local iter = 0
 	while (delta_x ~= 0 or delta_y ~= 0 or delta_z ~= 0) do
 		if (delta_x > 0) then delta_x = delta_x - movement.move_right(delta_x) end
-		if (delta_x < 0) then delta_x = delta_x + movement.move_left(delta_x) end
+		if (delta_x < 0) then delta_x = delta_x + movement.move_left(-delta_x) end
 		
 		if (delta_y > 0) then delta_y = delta_y - movement.move_up(delta_y) end
-		if (delta_y < 0) then delta_y = delta_y + movement.move_down(delta_y) end
+		if (delta_y < 0) then delta_y = delta_y + movement.move_down(-delta_y) end
 		
 		if (delta_z > 0) then delta_z = delta_z - movement.move_forward(delta_z) end
-		if (delta_z < 0) then delta_z = delta_z + movement.move_back(delta_z) end
+		if (delta_z < 0) then delta_z = delta_z + movement.move_back(-delta_z) end
 		
 		iter = iter + 1
 		if (iter >= 10) then
