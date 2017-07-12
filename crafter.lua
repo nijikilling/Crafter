@@ -116,16 +116,16 @@ end
 
 function movement.move_left(n)
 	movement.rotate_left()
-  utils.log("movement", "called move_left with n = " .. n)
 	local res, reason = movement.move_forward(n)
+  utils.log("movement", "called move_left with n = " .. n .. "and result = " .. res)
 	movement.rotate_right()
 	return res, reason
 end
 
 function movement.move_right(n)
-  utils.log("movement", "called move_right with n = " .. n)
 	movement.rotate_right()
 	local res, reason = movement.move_forward(n)
+  utils.log("movement", "called move_right with n = " .. n .. "and result = " .. res)
 	movement.rotate_left()
 	return res, reason
 end
@@ -147,7 +147,7 @@ function movement.go_to_pos(pos)
 		if (delta_z < 0) then delta_z = delta_z + movement.move_back(delta_z) end
 		
 		iter = iter + 1
-		if (iter >= 50) then
+		if (iter >= 10) then
 			return false, "failed, unknown reasons" --ToDo log this shit
 		end
 	end
