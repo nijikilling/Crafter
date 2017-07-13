@@ -205,8 +205,8 @@ function chest_working.find_in_chest_by_name(name, amount, lootAll)
 			if (pos == true) then 
 				local am = info["size"]
 				inv_cont.suckFromSlot(sides.front, i, amount)
-				local new_info = inv_cont.getStackInSlot(sides.front, i)
-				local new_am = new_info["size"]
+				local new_info = inv_cont.getStackInSlot(sides.front, i) or {}
+				local new_am = new_info["size"] or 0
 				amount = amount - (am - new_am)
 			end
 		end
@@ -276,7 +276,7 @@ function chest_working.find_slot_by_name(name)
 		if (info ~= nil) then
       utils.log("debug_slot", info["label"])
       utils.log("debug_slot", name)
-			if (info.name == name) then --wanna IC2 compatibility
+			if (info["label"] == name) then --wanna IC2 compatibility
 				return i
 			end
 		else
@@ -486,7 +486,7 @@ function utils.place_block_by_name(name)
     local num = chest_working.find_slot_by_name(name)
     utils.log("chest-debug", num)
     robot.select(num)
-    robot.place(sides.front, true)
+    robot.place(nil, true)
 end
 
 --END OF UTILS
