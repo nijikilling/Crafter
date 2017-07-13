@@ -274,6 +274,8 @@ function chest_working.find_slot_by_name(name)
 	for i = 1, size do
 		local info = inv_cont.getStackInInternalSlot(i)
 		if (info ~= nil) then
+      utils.log("debug_slot", info["label"])
+      utils.log("debug_slot", name)
 			if (info.name == name) then --wanna IC2 compatibility
 				return i
 			end
