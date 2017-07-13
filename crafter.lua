@@ -690,7 +690,7 @@ function movement_test()
 end
 
 function chest_test()
-  chest_working.calc_in_all_chests_by_name("Камень")
+  utils.log("chest_test", chest_working.calc_in_all_chests_by_name("Камень"))
   
 end
 
