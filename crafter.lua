@@ -660,7 +660,7 @@ local function startup_inventory() --ToDo add liquids
 	movement.move_left(2)
 	movement.temp_chest_pos = movement.get_current_pos()
 	movement.move_right(2)
-	movement.store_all_items()
+	chest_working.store_all_items()
 	movement.restore_my_position()
 end
 
@@ -701,8 +701,8 @@ function movement_test()
 end
 
 function chest_test()
+  movement.rotate_back()
   startup_inventory()
-  chest_working.store_all_items()
   chest_working.get_item_in_chest_by_name("Камень", 1000)
 end
 
