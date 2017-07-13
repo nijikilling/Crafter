@@ -132,6 +132,11 @@ function movement.move_right(n)
 	return res, reason
 end
 
+function movement.get_current_pos()
+  return {["x"]=movement.cur_x, ["y"]=movement.cur_y, ["z"]=movement.cur_z, 
+    ["orientation"]=movement.current_direction}
+end
+
 function movement.go_to_pos(pos)
 	while movement.current_direction ~= 0 do movement.rotate_left() end
 	local delta_x = pos["x"] - movement.cur_x
@@ -158,8 +163,7 @@ function movement.go_to_pos(pos)
 end
 
 function movement.remember_my_position()
-	table.insert(movement.position_stack, {["x"]=movement.cur_x, ["y"]=movement.cur_y, ["z"]=movement.cur_z, 
-      ["orientation"]=movement.current_direction})
+	table.insert(movement.position_stack, movement.get_current_pos())
 end
 
 function movement.go_to_zero()
@@ -286,15 +290,16 @@ function chest_working.store_all_items()
 	local internal_inv_size = robot.inventorySize() - chest_working.reserved_slots
 	local index = 1
 	while (index <= internal_inv_size) do
+    
 		if (chest_working.have_adjanced_inventory() == false) then
-			craft_items(chest_working.chest_name, 1) 
-			place_block_by_name(chest_working.chest_name)
+      local success, left = chest_working.get_item_in_chest_by_name(chest_working.chest_name, 1, false)
+			utils.place_block_by_name(chest_working.chest_name)
 		end
 		local has_place = true
 		while (index <= internal_inv_size and has_place) do
 			robot.select(index)
 			robot.drop()
-			has_place = robot.count() == 0
+			has_place = (robot.count() == 0)
 			if (has_place) then index = index + 1 end
 		end
 		if (index <= internal_inv_size) then
@@ -475,6 +480,11 @@ function utils.log(branch, t)
   io.close(f)
 end
 
+function utils.place_block_by_name(name)
+    local num = chest_working.find_slot_by_name(name)
+    robot.select(num)
+    robot.place(sides.front, true)
+end
 
 --END OF UTILS
 --CRAFTING!
@@ -691,10 +701,10 @@ function movement_test()
 end
 
 function chest_test()
-  utils.log("chest_test", chest_working.calc_in_all_chests_by_name("Камень"))
-  
+  startup_inventory()
+  chest_working.store_all_items()
+  chest_working.get_item_in_chest_by_name("Камень", 1000)
 end
-
 
 utils.clear_log()
 chest_test()
