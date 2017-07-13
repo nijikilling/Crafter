@@ -156,7 +156,8 @@ function movement.go_to_pos(pos)
 end
 
 function movement.remember_my_position()
-	table.insert(movement.position_stack, {["x"]=movement.cur_x, ["y"]=movement.cur_y, ["z"]=movement.cur_z, ["orientation"]=movement.current_direction})
+	table.insert(movement.position_stack, {["x"]=movement.cur_x, ["y"]=movement.cur_y, ["z"]=movement.cur_z, 
+      ["orientation"]=movement.current_direction})
 end
 
 function movement.go_to_zero()
@@ -674,8 +675,12 @@ local function startup_lookaround()
 end
 
 function movement_test()
-  movement.move_left(5)
-  movement.move_right(10)
+  movement.move_left()
+  movement.move_forward(4)
+  movement.move_right(4)
+  movement.move_back(2)
+  movement.move_up(2)
+  movement.move_left(1)
   movement.go_to_zero()
 end
 
