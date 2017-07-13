@@ -482,6 +482,7 @@ end
 
 function utils.place_block_by_name(name)
     local num = chest_working.find_slot_by_name(name)
+    utils.log("chest-debug", num)
     robot.select(num)
     robot.place(sides.front, true)
 end
@@ -703,7 +704,7 @@ end
 function chest_test()
   movement.rotate_back()
   startup_inventory()
-  chest_working.get_item_in_chest_by_name("Камень", 1000)
+  --chest_working.get_item_in_chest_by_name("Камень", 1000)
 end
 
 utils.clear_log()
