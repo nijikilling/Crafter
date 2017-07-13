@@ -683,7 +683,10 @@ function movement_test()
   movement.move_back(2)
   movement.move_up(2)
   movement.move_left(1)
+  movement.remember_my_position()
   movement.go_to_zero()
+  movement.move_back(5)
+  movement.restore_my_position()
 end
 
 utils.clear_log()
