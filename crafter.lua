@@ -197,12 +197,12 @@ function chest_working.find_in_chest_by_name(name, amount, lootAll)
 		local info = inv_cont.getStackInSlot(sides.front, i)
 		if (info ~= nil) then
 			local pos = nil
-			if (lootAll) then
+			if (lootAll == true) then
 				pos = true
 			else
-				pos = string.find(string.lower(name), string.lower(info["label"]), 1, true) --depend better substring
+				pos = (name == info["label"]) --depend better substring
 			end
-			if (pos ~= nil) then 
+			if (pos == true) then 
 				local am = info["size"]
 				inv_cont.suckFromSlot(sides.front, i, amount)
 				local new_info = inv_cont.getStackInSlot(sides.front, i)
