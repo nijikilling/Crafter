@@ -220,9 +220,9 @@ function chest_working.have_adjanced_inventory()
 end
 
 function chest_working.calc_in_all_chests_by_name(name)
-	local n = inv_cont.getInventorySize(sides.front)
 	local am = 0
 	while (chest_working.have_adjanced_inventory()) do
+    local n = inv_cont.getInventorySize(sides.front)
 		for i = 1, n do
 			local info = inv_cont.getStackInSlot(sides.front, i)
 			if (info ~= nil) then
@@ -689,5 +689,11 @@ function movement_test()
   movement.restore_my_position()
 end
 
+function chest_test()
+  chest_working.calc_in_all_chests_by_name("Камень")
+  
+end
+
+
 utils.clear_log()
-movement_test()
+chest_test()
