@@ -95,6 +95,8 @@ end
 
 function movement.move_down(n)
 	local res, reason movement.move_with_errors_handling(n, robot.down)
+  utils.log("down_debug", res .. " " .. reason)
+  utils.log("down_debug", movement.cur_y)
 	movement.cur_y = movement.cur_y - res
 	return res, reason
 end
