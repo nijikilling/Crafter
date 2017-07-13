@@ -215,6 +215,8 @@ end
 
 function chest_working.have_adjanced_inventory()
 	local n = inv_cont.getInventorySize(sides.front)
+  n = n or 0
+  utils.log("debug_chest", "adjanced inventory size = " .. n)
 	if (n == nil or n == 0) then return false end
 	return true
 end
@@ -226,8 +228,7 @@ function chest_working.calc_in_all_chests_by_name(name)
 		for i = 1, n do
 			local info = inv_cont.getStackInSlot(sides.front, i)
 			if (info ~= nil) then
-				local pos = string.find(string.lower(name), string.lower(info["label"]), 1, true)
-				if (pos ~= nil) then
+				if (info["label"] == name) then
 					am = am + info["size"] or 0
 				end
 			end
