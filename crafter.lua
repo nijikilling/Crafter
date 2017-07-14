@@ -758,7 +758,7 @@ end
 local function startup_lookaround()
   algo_state = "lookaround"
   startup_inventory() 
-  
+  movement.move_forward(15)
   local k = movement.move_left(15)
   for _ = 1, k + 15 do
     local success, val = robot.detect()
@@ -773,7 +773,7 @@ local function startup_lookaround()
     val = nv
     if (val == 0) then break end
   end
-  movement.move_to_zero()
+  movement.go_to_zero()
 end
 
 function movement_test()
