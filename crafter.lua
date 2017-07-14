@@ -760,6 +760,8 @@ local function startup_lookaround()
   startup_inventory() 
   utils.log("debug_startup", movement.position_stack[0])
   return -1
+end
+local function temp_func()
   movement.move_forward(15)
   local k = movement.move_left(15)
   for _ = 1, k + 15 do
