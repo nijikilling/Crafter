@@ -722,7 +722,7 @@ end
 function chest_test()
   movement.rotate_back()
   startup_inventory()
-  chest_working.transfer_to_temporary_chest("Камень", 2560)
+  chest_working.transfer_to_temporary_chests("Камень", 2560)
 end
 
 utils.clear_log()
