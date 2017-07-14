@@ -733,7 +733,7 @@ local function lookaround_inspect_block()
   end
   robot.select(num) --ToDo CHECK THAT INVENTORY WAS NOT CHANGED WHILE POSSIBLY GOING FOR NEW WRENCH!!!!!
   local name, _, _ = chest_working.inspect_slot(num)
-  robot.place(sides.front, true) --depend TEST THIS SHIT
+  robot.place(nil, true) --depend TEST THIS SHIT
   machines.add_machine_by_name(name)
   robot.select(prev_selected)
   return true
