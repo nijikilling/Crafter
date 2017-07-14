@@ -768,7 +768,7 @@ local function startup_lookaround()
       movement.move_up()
       success, val = robot.detect()
     end
-    movement.reset_y_coord()
+    movement.restore_y_coord()
     local nv, _ = movement.move_right()
     val = nv
     if (val == 0) then break end
