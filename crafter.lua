@@ -706,7 +706,7 @@ end
 function chest_test()
   movement.rotate_back()
   startup_inventory()
-  chest_working.get_item_in_chests_by_name("Камень", 1000)
+  chest_working.get_item_in_chests_by_name("Сундук", 7)
 end
 
 utils.clear_log()
