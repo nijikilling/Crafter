@@ -254,7 +254,9 @@ function chest_working.get_item_in_chests_by_name(name, amount, temp)
   while (chest_working.have_adjanced_inventory() and amount > 0) do
     local _, left = chest_working.find_in_chest_by_name(name, amount)
     amount = left
-    movement.move_up()
+    if (amount > 0) then
+      movement.move_up()
+    end
   end
   movement.restore_y_coord() 
   if (amount > 0) then
@@ -720,7 +722,7 @@ end
 function chest_test()
   movement.rotate_back()
   startup_inventory()
-  chest_working.get_item_in_chests_by_name("Сундук", 7)
+  chest_working.transfer_to_temporary_chest("Камень", 2560)
 end
 
 utils.clear_log()
