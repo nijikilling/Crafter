@@ -573,15 +573,15 @@ function utils.equip_tool_by_name(name)
   local prev_select = robot.select()
   local num = chest_working.find_slot_by_name(nil)
   robot.select(num)
-  robot.equip()
+  inv_cont.equip()
   local name_slot, _, _ = chest_working.inspect_slot(num)
   if (name_slot == name) then
-    robot.equip() --if already have such instrument equipped
+    inv_cont.equip() --if already have such instrument equipped
   else
     num = chest_working.find_slot_by_name(name)
     if (num ~= nil) then
       robot.select(num)
-      robot.equip()
+      inv_cont.equip()
     else
       local success = chest_working.take_from_chest_and_return(name, 1)
       if (success == false) then
@@ -589,7 +589,7 @@ function utils.equip_tool_by_name(name)
       end
       num = chest_working.find_slot_by_name(name)
       robot.select(num)
-      robot.equip()
+      inv_cont.equip()
     end
   end
   robot.select(prev_select)
