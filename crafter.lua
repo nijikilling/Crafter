@@ -244,7 +244,7 @@ function chest_working.calc_in_all_chests_by_name(name)
 end
 
 --@pos-safe
-function chest_working.get_item_in_chest_by_name(name, amount, temp)
+function chest_working.get_item_in_chests_by_name(name, amount, temp)
 	movement.remember_my_position()
 	if (temp == nil or temp == false) then
 		movement.go_to_pos(movement.common_chest_pos)
@@ -294,7 +294,7 @@ function chest_working.store_all_items()
 	while (index <= internal_inv_size) do
     
 		if (chest_working.have_adjanced_inventory() == false) then
-      local success, left = chest_working.get_item_in_chest_by_name(chest_working.chest_name, 1, false)
+      local success, left = chest_working.get_item_in_chests_by_name(chest_working.chest_name, 1, false)
 			utils.place_block_by_name(chest_working.chest_name)
 		end
 		local has_place = true
@@ -317,7 +317,7 @@ function chest_working.transfer_to_temporary_chests(name, amount)
 	local last_amount = 0
 	while (last_amount ~= amount) do
 		last_amount = amount
-		local _, left = chest_working.get_item_in_chest_by_name(name, amount) --pos-safe
+		local _, left = chest_working.get_item_in_chests_by_name(name, amount) --pos-safe
     amount = left
 		if (amount ~= last_amount) then
 			movement.go_to_pos(movement.temp_chest_pos)
@@ -356,7 +356,7 @@ end
 function chest_working.take_from_chest_and_return(name, amount)
 	movement.remember_my_position() 
 	movement.go_to_pos(movement.common_chest_pos) 
-	chest_working.get_item_in_chest_by_name(name, amount)
+	chest_working.get_item_in_chests_by_name(name, amount)
 	movement.restore_my_position()
 end
 
@@ -569,7 +569,7 @@ function crafting.craft_recipe_prepared(recipe_data)
 	local ingredients_table = crafting.get_recipe_ingredients_table(recipe_data["name"], recipe_data["amount"])
 	robot.select(1)
 	for key, val in pairs(ingredients_table) do
-		chest_working.get_item_in_chest_by_name(key, val, true) 
+		chest_working.get_item_in_chests_by_name(key, val, true) 
 	end
 	movement.go_to_pos(pos)
 	for i = 1, recipe_data["amount"] do
@@ -706,7 +706,7 @@ end
 function chest_test()
   movement.rotate_back()
   startup_inventory()
-  --chest_working.get_item_in_chest_by_name("Камень", 1000)
+  chest_working.get_item_in_chests_by_name("Камень", 1000)
 end
 
 utils.clear_log()
