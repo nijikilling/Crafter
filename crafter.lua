@@ -507,7 +507,7 @@ function machines.go_and_reinstall_machine(pos)
 end
 
 function machines.harvest_mechanism()
-  equip_tool_by_name(wrench_name)
+  utils.equip_tool_by_name(chest_working.wrench_name)
   local success = robot.swing(sides.front)
   if (success) then robot.suck() end
   return success
