@@ -758,6 +758,8 @@ end
 local function startup_lookaround()
   algo_state = "lookaround"
   startup_inventory() 
+  utils.log("debug_startup", movement.position_stack[0])
+  return -1
   movement.move_forward(15)
   local k = movement.move_left(15)
   for _ = 1, k + 15 do
@@ -790,7 +792,6 @@ function movement_test()
 end
 
 function chest_test()
-  movement.rotate_back()
   startup_lookaround()
   for _, machine in pairs(machines.machines) do
     print(machine["machine"], machine["tier"])
