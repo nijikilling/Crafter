@@ -363,6 +363,14 @@ function chest_working.take_from_chest_and_return(name, amount)
   movement.restore_my_position()
 end
 
+function chest_working.inspect_slot()
+  local info = inv_cont.getStackInSlot(sides.front, i)
+  if (info == nil) then
+    return nil, nil, nil
+  end
+  return info["label"], info["size"]
+end
+
 
 --END OF CHEST_WORKING
 --MACHINES
@@ -370,13 +378,74 @@ end
 machines.machines = {}
 
 function machines.parse_machine_name(name)
-  --depend
+  local name_table = {
+    {"Ultra Low Voltage", 1},
+    {"Low Voltage", 2},
+    {"Medium Voltage", 3},
+    {"High Voltage", 4},
+    {"Extreme Voltage", 5},
+    {"Insane Voltage", 6},
+    {"Ludicrous Voltage", 7},
+    {"ZPM Voltage", 8},
+    {"Ultimate Voltage", 9},
+    {"MAX Voltage", 10},
+    {"Basic", 2},
+    {"Advanced", 3},
+    {"ULV", 1},
+    {"LV", 2},
+    {"MV", 3},
+    {"HV", 4},
+    {"EV", 5},
+    {"IV", 6},
+    {"LuV", 7},
+    {"ZPM", 8},
+    {"UV", 9},
+    {"Max", 10}
+}
+
+  local grade_table = {
+    {"III", 2},
+    {"II", 1},
+    {"IV", 3},
+    {"V", 4}
+  }
+  local l = string.len(name)
+  local res = 0
+  for _, tmp in pairs(name_table) do
+    local key = tmp[1]
+    local val = tmp[2]
+    local i, j = string.find(string.sub(name, 1, l - 3), key)
+    if (i ~= nil) then
+      name = string.gsub(name, key, "", 1)
+      res = res + val
+      l = string.len(name)
+    end
+  end
+  
+  for _, tmp in pairs(grade_table) do
+    local key = tmp[1]
+    local val = tmp[2]
+    local i, j = string.find(string.sub(name, l - 3, l), key)
+    if (i ~= nil) then
+      name = string.gsub(name, key, "", 1)
+      res = res + val
+      l = string.len(name)
+    end
+  end
+  name = string.gsub(name, "  ", " ")
+  if (string.sub(name, 1, 1) == " ") then
+    name = string.sub(name, 2)
+  end
+  if (string.sub(name, string.len(name)) == " ") then
+    name = string.sub(name, 1, -2)
+  end
+  return name, res
 end
 
 function machines.add_machine_by_name(name)
-  local voltage_tier, raw_name = machines.parse_machine_name(name) --depend
+  local voltage_tier, raw_name = machines.parse_machine_name(name)
   local t = {["tier"]=voltage_tier, ["machine"]=raw_name, 
-    ["c_x"]=movement.cur_x, ["c_y"]=movement.cur_y, ["c_z"]=movement.cur_z, 
+    ["x"]=movement.cur_x, ["y"]=movement.cur_y, ["z"]=movement.cur_z, 
     ["orientation"]=movement.current_direction}
   table.insert(machines.machines, t)
 end
@@ -498,6 +567,32 @@ function utils.place_block_by_name(name)
     robot.select(num)
     robot.place(nil, true)
     robot.select(prev_select)
+end
+
+function utils.equip_tool_by_name(name)
+  local prev_select = robot.select()
+  local num = chest_working.find_slot_by_name(nil)
+  robot.select(num)
+  robot.equip()
+  local name_slot, _, _ = chest_working.inspect_slot(num)
+  if (name_slot == name) then
+    robot.equip() --if already have such instrument equipped
+  else
+    num = chest_working.find_slot_by_name(name)
+    if (num ~= nil) then
+      robot.select(num)
+      robot.equip()
+    else
+      local success = chest_working.take_from_chest_and_return(name, 1)
+      if (success == false) then
+        utils.terminate_algo("Can't find/craft tool needed!") 
+      end
+      num = chest_working.find_slot_by_name(name)
+      robot.select(num)
+      robot.equip()
+    end
+  end
+  robot.select(prev_select)
 end
 
 --END OF UTILS
@@ -624,32 +719,7 @@ local function kill_entity()
 --ToDo implement sword stuff
 end
 
-local function equip_tool_by_name(name)
-  local prev_select = robot.select()
-  local num = chest_working.find_slot_by_name(nil)
-  robot.select(num)
-  robot.equip()
-  local name_slot, _, _ = inspect_slot(num)
-  if (name_slot == name) then
-    robot.equip()
-  else
-    num = chest_working.find_slot_by_name(name)
-    if (num ~= nil) then
-      robot.select(num)
-      robot.equip()
-    else
-      local success = chest_working.take_from_chest_and_return(name, 1)
-      if (success == false) then
-        utils.terminate_algo("Can't find/craft tool needed!") 
-      end
-      num = chest_working.find_slot_by_name(name)
-      robot.select(num)
-      robot.equip()
-    end
-    
-  end
-  robot.select(prev_select)
-end
+
 
 --@keep_selected
 local function lookaround_inspect_block()
@@ -662,7 +732,7 @@ local function lookaround_inspect_block()
     return false
   end
   robot.select(num) --ToDo CHECK THAT INVENTORY WAS NOT CHANGED WHILE POSSIBLY GOING FOR NEW WRENCH!!!!!
-  local name, _, _ = inspect_slot(num)
+  local name, _, _ = chest_working.inspect_slot(num)
   robot.place(sides.front, true) --depend TEST THIS SHIT
   machines.add_machine_by_name(name)
   robot.select(prev_selected)
@@ -721,8 +791,10 @@ end
 
 function chest_test()
   movement.rotate_back()
-  startup_inventory()
-  chest_working.transfer_to_temporary_chests("Камень", 2560)
+  startup_lookaround()
+  for _, machine in pairs(machines.machines) do
+    print(machine["machine"], machine["tier"])
+  end
 end
 
 utils.clear_log()
