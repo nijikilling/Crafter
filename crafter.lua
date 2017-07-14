@@ -363,8 +363,8 @@ function chest_working.take_from_chest_and_return(name, amount)
   movement.restore_my_position()
 end
 
-function chest_working.inspect_slot()
-  local info = inv_cont.getStackInSlot(sides.front, i)
+function chest_working.inspect_slot(ind)
+  local info = inv_cont.getStackInSlot(sides.front, ind)
   if (info == nil) then
     return nil, nil, nil
   end
