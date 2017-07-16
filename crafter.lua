@@ -261,7 +261,7 @@ function chest_working.get_item_in_chests_by_name(name, amount, temp)
     local _, left, needed_parts = crafting.craft_items(name, amount) --depend only can be called for crafting tools
     amount = left
     if (amount > 0) then
-      utils.terutils.minate_algo("can't find or craft needed amount of stuff")
+      utils.terminate_algo("can't find or craft needed amount of stuff")
       --ToDo log needed stuff
     end
   end
@@ -460,7 +460,7 @@ function machines.fill_in_by_name(name, amount)
     robot.drop(k)
     amount = amount - k
     if (amount == last_amount) then
-      utils.terutils.minate_algo("Looks like either some ingredients were removed, or robot has too small inventory!")
+      utils.terminate_algo("Looks like either some ingredients were removed, or robot has too small inventory!")
     end
   end
   robot.select(prev_selected)
@@ -487,7 +487,7 @@ function machines.search_machine_by_name_and_tier(name, tier)
       return machine
     end
   end
-  utils.terutils.minate_algo("failed to find mechanism needed")
+  utils.terminate_algo("failed to find mechanism needed")
 end
 
 --@pos-safe
@@ -516,7 +516,7 @@ end
 --UTILS
 
 
-function utils.terutils.minate_algo(reason)
+function utils.terminate_algo(reason)
   movement.go_to_zero()
   print(reason)
   os.exit(-1)
@@ -531,7 +531,7 @@ function utils.file_open_read(name, default)
   end
   file = io.open(name, "r")
   if(file == nil) then
-    utils.terutils.minate_algo("can't create file!")
+    utils.terminate_algo("can't create file!")
   end
   return file
 end
@@ -539,7 +539,7 @@ end
 function utils.file_open_write(name)
   local file = io.open(name, "w")
   if (file == nil) then
-    utils.terutils.minate_algo("can't create file!")
+    utils.terminate_algo("can't create file!")
   end
   return file
 end
@@ -591,7 +591,7 @@ function utils.equip_tool_by_name(name)
     else
       local success = chest_working.take_from_chest_and_return(name, 1)
       if (success == false) then
-        utils.terutils.minate_algo("Can't find/craft tool needed!") 
+        utils.terminate_algo("Can't find/craft tool needed!") 
       end
       num = chest_working.find_slot_by_name(name)
       robot.select(num)
@@ -744,7 +744,7 @@ function crafting.craft_items(name, amount)
     for key, val in pairs(craft_list) do
       print(key, ": ", val)
     end
-    utils.terutils.minate_algo()
+    utils.terminate_algo()
   else
     for _, val in ipairs(craft_list) do
       crafting.craft_recipe_prepared(val)
