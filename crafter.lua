@@ -831,7 +831,7 @@ end
 
 function add_recipe(inputs, machine, output)
   crafting.reload_recipe_table()
-  crafting.recipe_table.insert({["ingredients"] = inputs, ["machine"] = machine, ["output"] = output})
+  table.insert(crafting.recipe_table, {["ingredients"] = inputs, ["machine"] = machine, ["output"] = output})
   crafting.save_recipe_table()
 end
 
