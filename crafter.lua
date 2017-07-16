@@ -663,9 +663,9 @@ function crafting.get_recipe_ingredients_table(name, amount)
   local res = {}                  
   for _, val in ipairs(ingredients) do
     if (val["consumable"] == "no") then --ToDo check existance
-      res[val["id"]] = res[val["id"]] + 1
+      res[val["id"]] = (res[val["id"]] or 0) + 1
     else
-      res[val["id"]] = res[val["id"]] + amount
+      res[val["id"]] = (res[val["id"]] or 0) + amount
     end
   end
   return res, amount
@@ -683,7 +683,7 @@ function crafting.build_craft_tree(name, amount, can_search_in_chests, success_t
     local t, amount = crafting.get_recipe_ingredients_table(name, amount) --now amount == how much times recipe should be crafted
     if (t == nil) then
       fail_table = fail_table or {}
-      fail_table[name] = fail_table[name] + amount
+      fail_table[name] = (fail_table[name] or 0) + amount
       return false, fail_table
     end
     table.insert(success_table, 1, {["name"] = name, ["amount"] = amount, ["recipe"] = crafting.get_recipe(name)}) 
