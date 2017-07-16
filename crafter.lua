@@ -854,5 +854,6 @@ function test_add_recipe()
 end
 
 utils.clear_log()
-test_add_recipe()
+--test_add_recipe()
+crafting.craft_items("Iron Rod", 1)
 print(crafting.recipe_table)
