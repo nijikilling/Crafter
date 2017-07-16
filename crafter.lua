@@ -450,6 +450,7 @@ end
 
 --@keep-select
 function machines.fill_in_by_name(name, amount)
+  utils.log("fill_in_by_name", name .. amount)
   local prev_selected = robot.select()
   while (amount > 0) do
     local last_amount = amount
@@ -468,6 +469,7 @@ function machines.fill_in_by_name(name, amount)
 end
 
 function machines.fill_in_ingredients(recipe_ingredients, first_time)
+  utils.debug("fill_in_ingredients", "called!")
   for _, ingredient in pairs(recipe_ingredients) do
     if ((ingredient["consumable"] == "no" and first_time) or ingredient["consumable"] == "yes") then
       machines.fill_in_by_name(ingredient["id"], ingredient["amount"])
