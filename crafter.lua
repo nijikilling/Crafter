@@ -470,7 +470,7 @@ end
 function machines.fill_in_ingredients(recipe_ingredients, first_time)
   for _, ingredient in pairs(recipe_ingredients) do
     if ((ingredient["consumable"] == "no" and first_time) or ingredient["consumable"] == "yes") then
-      machines.fill_in_by_name(ingredient["id"])
+      machines.fill_in_by_name(ingredient["id"], ingredient["amount"])
     end
   end
 end
