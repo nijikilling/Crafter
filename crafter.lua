@@ -526,7 +526,7 @@ function utils.file_open_read(name, default)
   local file = io.open(name, "r")
   if (file == nil) then
     file = io.open(name, "w")
-    io.write(file, default)
+    file.write(file, default)
     io.close(file)
   end
   file = io.open(name, "r")
