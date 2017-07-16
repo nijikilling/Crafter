@@ -17,8 +17,6 @@ local gregtech_machine_name = "gregtech:gt.blockmachines"
 local algo_state = "off"
 
 
-
-
 --MOVEMENT
 
 
@@ -538,12 +536,20 @@ function utils.file_open_read(name, default)
   return file
 end
 
+function utils.file_open_write(name)
+  local file = io.open(name, "w")
+  if (file == nil) then
+    utils.terminate_algo("can't create file!")
+  end
+  return file
+end
+
 function utils.read_whole_file(file)
   return file:read("*a")
 end
 
 function utils.close_file(file)
-  file.close()
+  io.close(file)
 end
 
 function utils.clear_log()
@@ -604,34 +610,61 @@ crafting.recipe_table = {}
 function crafting.reload_recipe_table()
   crafting.recipe_table = {}
   local recipe_file = utils.file_open_read("recipes.txt", "{}") 
-  crafting.recipe_table = serialization.deserialize(utils.read_whole_file(recipe_file))
+  crafting.recipe_table = serialization.unserialize(utils.read_whole_file(recipe_file))
+  utils.log("crafting", "Reloaded recipe table!")
   utils.close_file(recipe_file)
 end
 
+function crafting.save_recipe_table()
+  local recipe_file = utils.file_open_write("recipes.txt")
+  recipe_file.write(recipe_file, serialization.serialize(crafting.recipe_table))
+  utils.close_file(recipe_file)
+  utils.log("crafting", "Saved recipe table!")
+end
+
 function crafting.get_recipe(name)
-  return crafting.recipe_table[name]
+  --ToDo make recipe priority list!
+  for _, recipe in ipairs(crafting.recipe_table) do
+    for item, amount in pairs(recipe["output"]) do
+      if (item == name) then
+        utils.log("crafting", "Recipe found for name" .. name)
+        return recipe
+      end
+    end
+  end
+  utils.log("crafting", "Recipe wasn't found for name" .. name)
 end
 
 --recipe structure:
 --ingredients(in needed order)
 ----ingredient ID
+----amount
 ----unconsumable
 --machine
---tier
---does machine needs to be reinstalled(when has some unconsumed ingredient)
+----name
+----tier
+----does machine needs to be reinstalled(when has some unconsumed ingredient)
+----duration
+--output(s)
+----item
+----amount
+
 
 function crafting.get_recipe_ingredients_table(name, amount)
   local recipe = crafting.get_recipe(name)
-  local t = recipe["ingredients"] 
+  if (recipe == nil) then return nil end
+  local out_am = recipe["output"][name]
+  amount = amount / out_am + (amount % out_am > 0)
+  local ingredients = recipe["ingredients"] 
   local res = {}                  
-  for _, val in ipairs(t) do
-    if (val["consumable"] == true) then --ToDo check existance
+  for _, val in ipairs(ingredients) do
+    if (val["consumable"] == "no") then --ToDo check existance
       res[val["id"]] = res[val["id"]] + 1
     else
       res[val["id"]] = res[val["id"]] + amount
     end
   end
-  return res
+  return res, amount
 end
 
 function crafting.build_craft_tree(name, amount, can_search_in_chests, success_table, fail_table)
@@ -643,7 +676,7 @@ function crafting.build_craft_tree(name, amount, can_search_in_chests, success_t
   end
   local can_build = true
   if (amount > 0) then
-    local t = crafting.get_recipe_ingredients_table(name, amount) 
+    local t, amount = crafting.get_recipe_ingredients_table(name, amount) --now amount == how much times recipe should be crafted
     if (t == nil) then
       fail_table = fail_table or {}
       fail_table[name] = fail_table[name] + amount
@@ -666,12 +699,12 @@ end
 function crafting.craft_recipe_prepared(recipe_data)
   movement.remember_my_position()
   local recipe = recipe_data["recipe"]
-  if (recipe["machine_needs_reinstall"] == true) then
-    machines.go_and_reinstall_machine(recipe["machine"], recipe["tier"])
+  if (recipe["machine"]["needs_reinstall"] == true) then
+    machines.go_and_reinstall_machine(recipe["machine"]["name"], recipe["machine"]["tier"])
   end
   movement.go_to_pos(movement.common_chest_pos)
   chest_working.store_all_items()
-  local pos = machines.search_machine_by_name_and_tier(recipe["name"], recipe["tier"])
+  local pos = machines.search_machine_by_name_and_tier(recipe["machine"]["name"], recipe["machine"]["tier"])
   local ingredients_table = crafting.get_recipe_ingredients_table(recipe_data["name"], recipe_data["amount"])
   robot.select(1)
   for key, val in pairs(ingredients_table) do
@@ -796,5 +829,30 @@ function chest_test()
   end
 end
 
+function add_recipe(inputs, machine, output)
+  crafting.reload_recipe_table()
+  crafting.recipe_table.insert({["ingredients"] = inputs, ["machine"] = machine, ["output"] = output})
+  crafting.save_recipe_table()
+end
+
+function test_add_recipe()
+  add_recipe({
+      {
+      ["id"] = "Железный слиток",
+      ["amount"] = 1,
+      ["consumable"] = "yes"
+      }
+    }, {
+    ["name"] = "Lathe",
+    ["tier"] = 2,
+    ["needs_reinstall"] = false,
+    ["duration"] = 400 --ToDo idk the correct value
+    }, {
+      ["Iron Rod"] = 1,
+      ["Small Pile of Iron Dust"] = 2
+    })
+end
+
 utils.clear_log()
-chest_test()
+test_add_recipe()
+print(crafting.recipe_table)
