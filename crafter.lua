@@ -701,7 +701,11 @@ function crafting.build_craft_tree(name, amount, can_search_in_chests, success_t
       end
     end
   end
-  return can_build
+  if can_build == true then
+    return true, success_table
+  else
+    return false, fail_table
+  end
 end
 
 function crafting.craft_recipe_prepared(recipe_data)
