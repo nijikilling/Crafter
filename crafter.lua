@@ -601,6 +601,10 @@ function utils.equip_tool_by_name(name)
   robot.select(prev_select)
 end
 
+function utils.bool_to_int(val)
+  if (val) then return 1 else return 0 end
+end
+
 --END OF UTILS
 --CRAFTING!
 
@@ -654,7 +658,7 @@ function crafting.get_recipe_ingredients_table(name, amount)
   local recipe = crafting.get_recipe(name)
   if (recipe == nil) then return nil end
   local out_am = recipe["output"][name]
-  amount = amount / out_am + (amount % out_am > 0)
+  amount = amount / out_am + utils.bool_to_int(amount % out_am > 0)
   local ingredients = recipe["ingredients"] 
   local res = {}                  
   for _, val in ipairs(ingredients) do
