@@ -441,7 +441,7 @@ function machines.parse_machine_name(name)
 end
 
 function machines.add_machine_by_name(name)
-  local voltage_tier, raw_name = machines.parse_machine_name(name)
+  local raw_name, voltage_tier = machines.parse_machine_name(name)
   local t = {["tier"]=voltage_tier, ["machine"]=raw_name, 
     ["x"]=movement.cur_x, ["y"]=movement.cur_y, ["z"]=movement.cur_z, 
     ["orientation"]=movement.current_direction}
