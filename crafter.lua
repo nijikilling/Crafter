@@ -482,6 +482,7 @@ function machines.get_machine_output()
 end
 
 function machines.search_machine_by_name_and_tier(name, tier)
+  utils.log("debug_search_query", name .. tier)
   for _, machine in ipairs(machines.machines) do
     utils.log("debug_search_name", machine["machine"])
     utils.log("debug_search_tier", machine["tier"])
