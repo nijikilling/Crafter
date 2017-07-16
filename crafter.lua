@@ -483,9 +483,9 @@ end
 
 function machines.search_machine_by_name_and_tier(name, tier)
   for _, machine in ipairs(machines.machines) do
-    utils.log("debug_search_name", machine["name"])
+    utils.log("debug_search_name", machine["machine"])
     utils.log("debug_search_tier", machine["tier"])
-    if (name == machine["name"] and tier <= machine["tier"]) then
+    if (name == machine["machine"] and tier <= machine["tier"]) then
       return machine
     end
   end
