@@ -729,6 +729,8 @@ function crafting.craft_recipe_prepared(recipe_data)
     chest_working.get_item_in_chests_by_name(key, val, true) 
   end
   movement.go_to_pos(pos)
+  movement.move_up()
+  movement.move_forward()
   for i = 1, recipe_data["amount"] do
     machines.fill_in_ingredients(recipe["ingredients"], i == 1)
     os.sleep(recipe["duration"])
@@ -812,12 +814,11 @@ local function startup_lookaround()
   movement.move_forward(15)
   local k = movement.move_left(15)
   for _ = 1, k + 15 do
-    local success, val = robot.detect()
-    if (success == false) then break end
-    while (success == true) do
+    local success = true
+    for j = 1, 15 do
       lookaround_inspect_block()
-      movement.move_up()
-      success, val = robot.detect()
+      success = movement.move_up()
+      if (success == false) then break end
     end
     movement.restore_y_coord()
     local nv, _ = movement.move_right()
