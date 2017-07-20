@@ -184,6 +184,7 @@ end
 chest_working.reserved_slots = 1
 chest_working.chest_name = "Сундук"
 chest_working.wrench_name = "Wrench"
+chest_working.time_to_reach_chest = 20
 
 function chest_working.find_in_chest_by_name(name, amount, lootAll)
   local n = inv_cont.getInventorySize(sides.front)
@@ -288,28 +289,49 @@ function chest_working.find_slot_by_name(name)
   return nil
 end
 
-function chest_working.store_all_items()
-  local internal_inv_size = robot.inventorySize() - chest_working.reserved_slots
-  local index = 1
-  while (index <= internal_inv_size) do
-    
+function chest_working.store_slot(slot, amount)
+  while (amount > 0) do
+    robot.select(slot)
+    local old_val = robot.count()
     if (chest_working.have_adjanced_inventory() == false) then
       local success, left = chest_working.get_item_in_chests_by_name(chest_working.chest_name, 1, false)
       utils.place_block_by_name(chest_working.chest_name)
     end
-    local has_place = true
-    while (index <= internal_inv_size and has_place) do
-      robot.select(index)
-      robot.drop()
-      has_place = (robot.count() == 0)
-      if (has_place) then index = index + 1 end
-    end
-    if (index <= internal_inv_size) then
+    robot.select(slot)
+    robot.drop(amount)
+    amount = amount - (old_val - robot.count())
+    if (amount > 0) then
       movement.move_up()
     end
   end
+end
+
+function chest_working.store_all_items() --ToDo retest
+  local internal_inv_size = robot.inventorySize() - chest_working.reserved_slots
+  local index = 1
+  for index = 1, internal_inv_size do
+    robot.select(index)
+    chest_working.store_slot(index, robot.count() or 0)
+  end
   robot.select(1)
   return true
+end
+
+function chest_working.store_item_by_name(name, amount)
+  local internal_inv_size = robot.inventorySize() - chest_working.reserved_slots
+  local index = 1
+  for index = 1, internal_inv_size do
+    local slot_name, slot_amount = chest_working.inspect_slot(index)
+    if (slot_name == name) then
+      local k = utils.min(amount, slot_amount)
+      chest_working.store_slot(index, k)
+      amount = amount - k
+      if (amount == 0) then
+        break
+      end
+    end
+  end
+  
 end
 
 function chest_working.transfer_to_temporary_chests(name, amount) 
@@ -368,7 +390,6 @@ function chest_working.inspect_slot(ind)
   end
   return info["label"], info["size"]
 end
-
 
 --END OF CHEST_WORKING
 --MACHINES
@@ -485,10 +506,7 @@ function machines.get_machine_output()
 end
 
 function machines.search_machine_by_name_and_tier(name, tier)
-  utils.log("debug_search_query", name .. tier)
   for _, machine in ipairs(machines.machines) do
-    utils.log("debug_search_name", machine["machine"])
-    utils.log("debug_search_tier", machine["tier"])
     if (name == machine["machine"] and tier <= machine["tier"]) then
       return machine
     end
@@ -730,12 +748,19 @@ function crafting.craft_recipe_prepared(recipe_data)
   end
   movement.go_to_pos(pos)
   movement.move_up()
-  movement.move_forward()
-  for i = 1, recipe_data["amount"] do
-    machines.fill_in_ingredients(recipe["ingredients"], i == 1)
-    os.sleep(recipe["duration"])
-    machines.get_machine_output()
+  movement.move_up()  --depend ASSUMING "large-input" systems with external chests for each machine
+  if (recipe_data["amount"] < 3) then
+    for i = 1, recipe_data["amount"] do
+      machines.fill_in_ingredients(recipe["ingredients"], i == 1)
+      --machines.get_machine_output()
+    end
+  else
+    machines.fill_in_ingredients(recipe["ingredients"], true)
+    machines.fill_in_ingredients(recipe["ingredients"], false)
+    movement.move_up()
+    chest_working.store_all_items()
   end
+  os.sleep(recipe["duration"] * recipe["amount"] + chest_working.time_to_reach_chest)
   movement.go_to_pos(movement.temp_chest_pos)
   chest_working.store_all_items()
   movement.restore_my_position()
