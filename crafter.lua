@@ -2,10 +2,10 @@ local robot = require("robot")
 local sides = require("sides")
 local component = require("component")
 local serialization = require("serialization")
-local crafting = require("crafting")
 
 local inv_cont = component.inventory_controller
 local tank_cont = component.tank_controller
+local crafting = component.crafting
 
 local movement = {}
 local chest_working = {}
