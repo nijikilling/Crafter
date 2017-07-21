@@ -966,8 +966,8 @@ function test_add_recipe()
 end
 
 utils.clear_log()
---test_add_recipe()
-startup_inventory()
+test_add_recipe()
+--startup_inventory()
 --startup_lookaround()
 --crafting.craft_items("Iron Rod", 1)
 
