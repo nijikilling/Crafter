@@ -956,7 +956,6 @@ function test_add_recipe()
         ["S"] = "Кремень"
       }, 
       ["recipe_string"] = "CCCCSCCCC"
-      }
     }, 
     nil,
     {
@@ -982,7 +981,6 @@ function test_add_recipe()
         ["S"] = "Обсидиан"
       }, 
       ["recipe_string"] = "CCCCSCCCC"
-      }
     }, 
     nil,
     {
