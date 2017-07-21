@@ -660,6 +660,18 @@ function crafting.get_recipe(name)
     for item, amount in pairs(recipe["output"]) do
       if (item == name) then
         utils.log("crafting", "Recipe found for name" .. name)
+        if (recipe["ingredients"]["recipe_string"] ~= nil) then
+          local tmp = {}
+          for i = 1, 9 do
+            local sym = string.sub(sym, i, i)
+            table.insert(tmp, {
+                ["id"] = recipe["ingredients"]["short_names"][sym], 
+                ["amount"] = 1
+                ["consumable"] = "yes"
+                })
+          end
+          recipe["ingredients"] = tmp
+        end
         return recipe
       end
     end
@@ -671,7 +683,7 @@ end
 --ingredients(in needed order)
 ----ingredient ID
 ----amount
-----unconsumable
+----consumable
 --machine
 ----name
 ----tier
@@ -735,6 +747,10 @@ end
 function crafting.craft_recipe_prepared(recipe_data)
   movement.remember_my_position()
   local recipe = recipe_data["recipe"]
+  if (recipe["machine"] == nil) then
+    --depend
+    return true
+  end
   if (recipe["machine"]["needs_reinstall"] == true) then
     machines.go_and_reinstall_machine(recipe["machine"]["name"], recipe["machine"]["tier"])
   end
@@ -880,7 +896,7 @@ function add_recipe(inputs, machine, output)
 end
 
 function test_add_recipe()
-  add_recipe({
+  --[[add_recipe({
       {
       ["id"] = "Железный слиток",
       ["amount"] = 1,
@@ -894,6 +910,58 @@ function test_add_recipe()
     }, {
       ["Iron Rod"] = 1,
       ["Small Pile of Iron Dust"] = 2
+    })--]]
+  add_recipe({
+      ["short_names"] = {
+        ["C"] = "Coal Dust",
+        ["S"] = "Кремень"
+      }, 
+      ["recipe_string"] = "CCCCSCCCC"
+      }
+    }, 
+    nil,
+    {
+      ["Угольный шарик"] = 1
+    })
+  add_recipe({
+      {
+      ["id"] = "Угольный шарик",
+      ["amount"] = 1,
+      ["consumable"] = "yes"
+      }
+    }, {
+    ["name"] = "Compressor",
+    ["tier"] = 2,
+    ["needs_reinstall"] = false,
+    ["duration"] = 20 --ToDo idk the correct value
+    }, {
+      ["Сжатый угольный шарик"] = 1
+    })
+  add_recipe({
+      ["short_names"] = {
+        ["C"] = "Сжатый угольный шарик",
+        ["S"] = "Обсидиан"
+      }, 
+      ["recipe_string"] = "CCCCSCCCC"
+      }
+    }, 
+    nil,
+    {
+      ["Угольная глыба"] = 1
+    })
+  add_recipe({
+      {
+      ["id"] = "Угольная глыба",
+      ["amount"] = 1,
+      ["consumable"] = "yes"
+      }
+    }, {
+    ["name"] = "Compressor",
+    ["tier"] = 2,
+    ["needs_reinstall"] = false,
+    ["duration"] = 20 --ToDo idk the correct value
+    }, {
+      ["Промышленный алмаз"] = 1
     })
 end
 
