@@ -675,7 +675,7 @@ function craft_work.get_recipe(name)
             local sym = string.sub(sym, i, i)
             table.insert(tmp, {
                 ["id"] = recipe["ingredients"]["short_names"][sym], 
-                ["amount"] = 1
+                ["amount"] = 1,
                 ["consumable"] = "yes"
                 })
           end
