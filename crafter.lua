@@ -899,6 +899,8 @@ end
 
 utils.clear_log()
 --test_add_recipe()
-startup_lookaround()
-crafting.craft_items("Iron Rod", 1)
+startup_inventory()
+--startup_lookaround()
+--crafting.craft_items("Iron Rod", 1)
+
 print(crafting.recipe_table)
