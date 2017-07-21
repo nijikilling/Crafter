@@ -2,6 +2,7 @@ local robot = require("robot")
 local sides = require("sides")
 local component = require("component")
 local serialization = require("serialization")
+local crafting = require("crafting")
 
 local inv_cont = component.inventory_controller
 local tank_cont = component.tank_controller
@@ -10,7 +11,8 @@ local movement = {}
 local chest_working = {}
 local machines = {}
 local utils = {}
-local crafting = {}
+local craft_work = {}
+
 
 local gregtech_machine_name = "gregtech:gt.blockmachines"
 
@@ -259,7 +261,7 @@ function chest_working.get_item_in_chests_by_name(name, amount, temp)
   end
   movement.restore_y_coord() 
   if (amount > 0) then
-    local _, left, needed_parts = crafting.craft_items(name, amount) --depend only can be called for crafting tools
+    local _, left, needed_parts = craft_work.craft_items(name, amount) --depend only can be called for craft_work tools
     amount = left
     if (amount > 0) then
       utils.terminate_algo("can't find or craft needed amount of stuff")
@@ -391,12 +393,19 @@ function chest_working.inspect_slot(ind)
   return info["label"], info["size"]
 end
 
+function chest_working.swap_slots(i, j)
+  local prev_selected = robot.select()
+  robot.select(i)
+  robot.transferTo(j)
+  robot.select(prev_selected)
+end
+
 --END OF CHEST_WORKING
 --MACHINES
 
 machines.machines = {}
 
-function machines.parse_machine_name(name)
+function machines.parse_machine_name(name) --ToDo parse special names
   local name_table = {
     {"Ultra Low Voltage", 1},
     {"Low Voltage", 2},
@@ -637,29 +646,29 @@ end
 --CRAFTING!
 
 
-crafting.recipe_table = {}
+craft_work.recipe_table = {}
 
-function crafting.reload_recipe_table()
-  crafting.recipe_table = {}
+function craft_work.reload_recipe_table()
+  craft_work.recipe_table = {}
   local recipe_file = utils.file_open_read("recipes.txt", "{}") 
-  crafting.recipe_table = serialization.unserialize(utils.read_whole_file(recipe_file))
-  utils.log("crafting", "Reloaded recipe table!")
+  craft_work.recipe_table = serialization.unserialize(utils.read_whole_file(recipe_file))
+  utils.log("craft_work", "Reloaded recipe table!")
   utils.close_file(recipe_file)
 end
 
-function crafting.save_recipe_table()
+function craft_work.save_recipe_table()
   local recipe_file = utils.file_open_write("recipes.txt")
-  recipe_file.write(recipe_file, serialization.serialize(crafting.recipe_table))
+  recipe_file.write(recipe_file, serialization.serialize(craft_work.recipe_table))
   utils.close_file(recipe_file)
-  utils.log("crafting", "Saved recipe table!")
+  utils.log("craft_work", "Saved recipe table!")
 end
 
-function crafting.get_recipe(name)
+function craft_work.get_recipe(name)
   --ToDo make recipe priority list!
-  for _, recipe in ipairs(crafting.recipe_table) do
+  for _, recipe in ipairs(craft_work.recipe_table) do
     for item, amount in pairs(recipe["output"]) do
       if (item == name) then
-        utils.log("crafting", "Recipe found for name" .. name)
+        utils.log("craft_work", "Recipe found for name" .. name)
         if (recipe["ingredients"]["recipe_string"] ~= nil) then
           local tmp = {}
           for i = 1, 9 do
@@ -676,7 +685,7 @@ function crafting.get_recipe(name)
       end
     end
   end
-  utils.log("crafting", "Recipe wasn't found for name" .. name)
+  utils.log("craft_work", "Recipe wasn't found for name" .. name)
 end
 
 --recipe structure:
@@ -694,8 +703,8 @@ end
 ----amount
 
 
-function crafting.get_recipe_ingredients_table(name, amount)
-  local recipe = crafting.get_recipe(name)
+function craft_work.get_recipe_ingredients_table(name, amount)
+  local recipe = craft_work.get_recipe(name)
   if (recipe == nil) then return nil end
   local out_am = recipe["output"][name]
   amount = amount / out_am + utils.bool_to_int(amount % out_am > 0)
@@ -711,7 +720,7 @@ function crafting.get_recipe_ingredients_table(name, amount)
   return res, amount
 end
 
-function crafting.build_craft_tree(name, amount, can_search_in_chests, success_table, fail_table)
+function craft_work.build_craft_tree(name, amount, can_search_in_chests, success_table, fail_table)
   if (can_search_in_chests) then
     local am = chest_working.calc_in_all_chests_by_name(name)
     local k = utils.min(am, amount)
@@ -720,15 +729,15 @@ function crafting.build_craft_tree(name, amount, can_search_in_chests, success_t
   end
   local can_build = true
   if (amount > 0) then
-    local t, amount = crafting.get_recipe_ingredients_table(name, amount) --now amount == how much times recipe should be crafted
+    local t, amount = craft_work.get_recipe_ingredients_table(name, amount) --now amount == how much times recipe should be crafted
     if (t == nil) then
       fail_table = fail_table or {}
       fail_table[name] = (fail_table[name] or 0) + amount
       return false, fail_table
     end
-    table.insert(success_table, 1, {["name"] = name, ["amount"] = amount, ["recipe"] = crafting.get_recipe(name)}) 
+    table.insert(success_table, 1, {["name"] = name, ["amount"] = amount, ["recipe"] = craft_work.get_recipe(name)}) 
     for key, val in pairs(t) do
-      local success, res_table = crafting.build_craft_tree(key, val, true, success_table, fail_table) 
+      local success, res_table = craft_work.build_craft_tree(key, val, true, success_table, fail_table) 
       if (success == false) then
         can_build = false
         fail_table  = res_table
@@ -744,11 +753,41 @@ function crafting.build_craft_tree(name, amount, can_search_in_chests, success_t
   end
 end
 
-function crafting.craft_recipe_prepared(recipe_data)
+function craft_work.setup_crafting_table(recipe)
+  local inv_size = robot.inventorySize() - chest_working.reserved_slots
+  for ind, i in ipairs({1, 2, 3, 5, 6, 7, 9, 10, 11}) do
+    local success = false
+    for j = i, inv_size do
+      local name, _, _ = chest_working.inspect_slot(j)
+      if (name == recipe["ingredients"][ind]["id"]) then
+        chest_working.swap_slots(ind, j)
+        success = true
+        break
+      end
+    end
+    if (success == false) then
+      utils.terminate_algo("couldn't set up crafting table!")
+    end
+  end
+  
+end
+
+function craft_work.craft_recipe_prepared(recipe_data)
   movement.remember_my_position()
   local recipe = recipe_data["recipe"]
   if (recipe["machine"] == nil) then
     --depend
+    local max_am = 1
+    for key, val in pairs(recipe["output"]) do
+      if (val > max_am) then max_am = val end
+    end
+    local amount = recipe_data["amount"] * max_am
+    while (amount > 0) do
+      craft_work.setup_crafting_table(recipe) --depend
+      local k = utils.min(amount, 64)
+      crafting.craft(k) --depend
+      amount = amount - k
+    end
     return true
   end
   if (recipe["machine"]["needs_reinstall"] == true) then
@@ -757,7 +796,7 @@ function crafting.craft_recipe_prepared(recipe_data)
   movement.go_to_pos(movement.common_chest_pos)
   chest_working.store_all_items()
   local pos = machines.search_machine_by_name_and_tier(recipe["machine"]["name"], recipe["machine"]["tier"])
-  local ingredients_table = crafting.get_recipe_ingredients_table(recipe_data["name"], recipe_data["amount"])
+  local ingredients_table = craft_work.get_recipe_ingredients_table(recipe_data["name"], recipe_data["amount"])
   robot.select(1)
   for key, val in pairs(ingredients_table) do
     chest_working.get_item_in_chests_by_name(key, val, true) 
@@ -783,13 +822,13 @@ function crafting.craft_recipe_prepared(recipe_data)
 end
 
 --@pos-safe
-function crafting.craft_items(name, amount)
-  crafting.reload_recipe_table()
+function craft_work.craft_items(name, amount)
+  craft_work.reload_recipe_table()
   movement.remember_my_position()  
   
   movement.go_to_pos(movement.common_chest_pos)
   
-  local success, craft_list = crafting.build_craft_tree(name, amount, false, {}, {})
+  local success, craft_list = craft_work.build_craft_tree(name, amount, false, {}, {})
   if (success == false) then
     print("Robot requires additional stuff to continue working!\n")
     chest_working.clear_temporary_chests()
@@ -800,7 +839,7 @@ function crafting.craft_items(name, amount)
     utils.terminate_algo()
   else
     for _, val in ipairs(craft_list) do
-      crafting.craft_recipe_prepared(val)
+      craft_work.craft_recipe_prepared(val)
     end
   end
   movement.restore_my_position()
@@ -890,9 +929,9 @@ function chest_test()
 end
 
 function add_recipe(inputs, machine, output)
-  crafting.reload_recipe_table()
-  table.insert(crafting.recipe_table, {["ingredients"] = inputs, ["machine"] = machine, ["output"] = output})
-  crafting.save_recipe_table()
+  craft_work.reload_recipe_table()
+  table.insert(craft_work.recipe_table, {["ingredients"] = inputs, ["machine"] = machine, ["output"] = output})
+  craft_work.save_recipe_table()
 end
 
 function test_add_recipe()
@@ -969,6 +1008,6 @@ utils.clear_log()
 test_add_recipe()
 --startup_inventory()
 --startup_lookaround()
---crafting.craft_items("Iron Rod", 1)
+--craft_work.craft_items("Iron Rod", 1)
 
-print(crafting.recipe_table)
+print(craft_work.recipe_table)
