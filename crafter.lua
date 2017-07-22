@@ -300,7 +300,7 @@ function chest_working.store_slot(slot, amount)
     robot.select(slot)
     local old_val = robot.count()
     if (chest_working.have_adjanced_inventory() == false) then
-      local success, left = chest_working.get_item_in_chests_by_name({chest_working.chest_name = 1}, false)
+      local success, left = chest_working.get_item_in_chests_by_name({[chest_working.chest_name] = 1}, false)
       utils.place_block_by_name(chest_working.chest_name)
     end
     robot.select(slot)
