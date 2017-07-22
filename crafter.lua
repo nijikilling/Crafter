@@ -740,7 +740,8 @@ function craft_work.build_craft_tree(name, amount, can_search_in_chests, success
   end
   local can_build = true
   if (amount > 0) then
-    local t, amount = craft_work.get_recipe_ingredients_table(name, amount) --now amount == how much times recipe should be crafted
+    local t, left = craft_work.get_recipe_ingredients_table(name, amount) --now amount == how much times recipe should be crafted
+    amount = left
     if (t == nil) then
       fail_table = fail_table or {}
       fail_table[name] = (fail_table[name] or 0) + amount
