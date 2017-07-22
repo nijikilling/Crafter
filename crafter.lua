@@ -672,7 +672,7 @@ function craft_work.get_recipe(name)
         if (recipe["ingredients"]["recipe_string"] ~= nil) then
           local tmp = {}
           for i = 1, 9 do
-            local sym = string.sub(sym, i, i)
+            local sym = string.sub(recipe["ingredients"]["recipe_string"], i, i)
             table.insert(tmp, {
                 ["id"] = recipe["ingredients"]["short_names"][sym], 
                 ["amount"] = 1,
