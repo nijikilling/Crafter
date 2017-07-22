@@ -776,16 +776,15 @@ function craft_work.craft_recipe_prepared(recipe_data)
   movement.remember_my_position()
   local recipe = recipe_data["recipe"]
   if (recipe["machine"] == nil) then
-    --depend
     local max_am = 1
     for key, val in pairs(recipe["output"]) do
       if (val > max_am) then max_am = val end
     end
     local amount = recipe_data["amount"] * max_am
     while (amount > 0) do
-      craft_work.setup_crafting_table(recipe) --depend
-      local k = utils.min(amount, 64)
-      crafting.craft(k) --depend
+      craft_work.setup_crafting_table(recipe) 
+      local k = utils.min(amount, 64 - 64 % max_am)
+      crafting.craft(k) 
       amount = amount - k
     end
     return true
@@ -995,7 +994,7 @@ function test_add_recipe()
     }, {
     ["name"] = "Compressor",
     ["tier"] = 2,
-    ["needs_reinstall"] = false,
+    ["needs_reinstall"] = false, 
     ["duration"] = 20 --ToDo idk the correct value
     }, {
       ["Промышленный алмаз"] = 1
