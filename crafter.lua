@@ -258,7 +258,7 @@ function chest_working.get_item_in_chests_by_name(query, temp, lootAll)
       movement.move_up()
     end
   end
-  movement.restore_y_coord() 
+  movement.restore_y_coord()
   if (cont == true) then
     for name, amount in pairs(query) do
       local _, left, needed_parts = craft_work.craft_items(name, amount) --depend only can be called for crafting tools
@@ -1012,8 +1012,10 @@ end
 
 utils.clear_log()
 --test_add_recipe()
+chest_working.get_item_in_chests_by_name({["Камень"] = 100, ["Iron Rod"] = 2})
 startup_inventory()
 --startup_lookaround()
+
 craft_work.craft_items("Угольный шарик", 1)
 
 print(craft_work.recipe_table)
