@@ -1020,7 +1020,7 @@ end
 utils.clear_log()
 --test_add_recipe()
 startup_inventory()
-chest_working.get_item_in_chests_by_name({["Камень"] = 100, ["Iron Rod"] = 2})
+--chest_working.get_item_in_chests_by_name({["Камень"] = 100, ["Iron Rod"] = 2})
 
 --startup_lookaround()
 
