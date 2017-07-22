@@ -188,34 +188,29 @@ chest_working.chest_name = "Сундук"
 chest_working.wrench_name = "Wrench"
 chest_working.time_to_reach_chest = 20
 
-function chest_working.find_in_chest_by_name(name, amount, lootAll)
+function chest_working.find_in_chest_by_name(query, lootAll)
   local n = inv_cont.getInventorySize(sides.front)
   lootAll = lootAll or false
   if (lootAll ~= false) then
-    amount = 100000 --workaround for 
+    query[-1] = 100000
   end
   for i = 1, n do
     local info = inv_cont.getStackInSlot(sides.front, i)
     if (info ~= nil) then
-      local pos = nil
-      if (lootAll == true) then
-        pos = true
-      else
-        pos = (name == info["label"]) --depend better substring
-      end
-      if (pos == true) then 
+      if (query[info["label"]] == nil) then info["label"] = -1 end
+      if (query[info["label"]] ~= nil) then 
         local am = info["size"]
-        inv_cont.suckFromSlot(sides.front, i, amount)
+        inv_cont.suckFromSlot(sides.front, i, utils.min(query[info["label"]], 64)) --ToDo custom stack sizes
         local new_info = inv_cont.getStackInSlot(sides.front, i) or {}
         local new_am = new_info["size"] or 0
-        amount = amount - (am - new_am)
+        query[info["label"]] = query[info["label"]] - (am - new_am)
       end
     end
     if (amount <= 0) then 
-      return true, 0
+      return true, query
     end
   end
-  return false, amount
+  return false, query
 end
 
 function chest_working.have_adjanced_inventory()
@@ -245,25 +240,34 @@ function chest_working.calc_in_all_chests_by_name(name)
 end
 
 --@pos-safe
-function chest_working.get_item_in_chests_by_name(name, amount, temp)
+function chest_working.get_item_in_chests_by_name(query, temp, lootAll)
   movement.remember_my_position()
   if (temp == nil or temp == false) then
     movement.go_to_pos(movement.common_chest_pos)
   else
     movement.go_to_pos(movement.temp_chest_pos)
   end
-  while (chest_working.have_adjanced_inventory() and amount > 0) do
-    local _, left = chest_working.find_in_chest_by_name(name, amount)
-    amount = left
-    if (amount > 0) then
+  local cont = true
+  while (chest_working.have_adjanced_inventory() and cont == true) do
+    local _, left = chest_working.find_in_chest_by_name(query, lootAll)
+    query = left
+    for key, val in query do
+      if (val > 0) then cont = true end
+    end
+    if (cont == true) then
       movement.move_up()
     end
   end
   movement.restore_y_coord() 
-  if (amount > 0) then
-    local _, left, needed_parts = craft_work.craft_items(name, amount) --depend only can be called for craft_work tools
-    amount = left
-    if (amount > 0) then
+  if (cont == true) then
+    for name, amount in pairs(query) do
+      local _, left, needed_parts = craft_work.craft_items(name, amount) --depend only can be called for crafting tools
+      query[name] = left
+    end
+    for key, val in query do
+      if (val > 0) then cont = true end
+    end
+    if (cont == true) then
       utils.terminate_algo("can't find or craft needed amount of stuff")
       --ToDo log needed stuff
     end
@@ -296,7 +300,7 @@ function chest_working.store_slot(slot, amount)
     robot.select(slot)
     local old_val = robot.count()
     if (chest_working.have_adjanced_inventory() == false) then
-      local success, left = chest_working.get_item_in_chests_by_name(chest_working.chest_name, 1, false)
+      local success, left = chest_working.get_item_in_chests_by_name({chest_working.chest_name = 1}, false)
       utils.place_block_by_name(chest_working.chest_name)
     end
     robot.select(slot)
@@ -342,9 +346,9 @@ function chest_working.transfer_to_temporary_chests(name, amount)
   local last_amount = 0
   while (last_amount ~= amount) do
     last_amount = amount
-    local _, left = chest_working.get_item_in_chests_by_name(name, amount) --pos-safe
+    local _, left = chest_working.get_item_in_chests_by_name({name = amount}) --pos-safe
     amount = left
-    if (amount ~= last_amount) then
+    if (amount ~= last_amount) then --ToDo depend rewrite for list-transfer too!
       movement.go_to_pos(movement.temp_chest_pos)
       chest_working.store_all_items()
       movement.go_to_pos(movement.common_chest_pos)
@@ -381,7 +385,7 @@ end
 function chest_working.take_from_chest_and_return(name, amount)
   movement.remember_my_position() 
   movement.go_to_pos(movement.common_chest_pos) 
-  chest_working.get_item_in_chests_by_name(name, amount)
+  chest_working.get_item_in_chests_by_name({name = amount})
   movement.restore_my_position()
 end
 
@@ -720,11 +724,12 @@ function craft_work.get_recipe_ingredients_table(name, amount)
   return res, amount
 end
 
-function craft_work.build_craft_tree(name, amount, can_search_in_chests, success_table, fail_table)
+function craft_work.build_craft_tree(name, amount, can_search_in_chests, success_table, fail_table, skip_store)
   if (can_search_in_chests) then
     local am = chest_working.calc_in_all_chests_by_name(name)
     local k = utils.min(am, amount)
-    chest_working.transfer_to_temporary_chests(name, k)
+    --chest_working.transfer_to_temporary_chests(name, k)
+    chest_working.get_item_in_chests_by_name({name = k})
     amount = amount - k
   end
   local can_build = true
@@ -745,6 +750,12 @@ function craft_work.build_craft_tree(name, amount, can_search_in_chests, success
         success_table = res_table
       end
     end
+  end
+  if ((skip_store or false) == true) then
+    movement.remember_my_position()
+    movement.go_to_pos(movement.temp_chest_pos)
+    chest_working.store_all_items()
+    movement.restore_my_position()
   end
   if can_build == true then
     return true, success_table
@@ -797,9 +808,7 @@ function craft_work.craft_recipe_prepared(recipe_data)
   local pos = machines.search_machine_by_name_and_tier(recipe["machine"]["name"], recipe["machine"]["tier"])
   local ingredients_table = craft_work.get_recipe_ingredients_table(recipe_data["name"], recipe_data["amount"])
   robot.select(1)
-  for key, val in pairs(ingredients_table) do
-    chest_working.get_item_in_chests_by_name(key, val, true) 
-  end
+  chest_working.get_item_in_chests_by_name(ingredients_table, true) 
   movement.go_to_pos(pos)
   movement.move_up()
   movement.move_up()  --depend ASSUMING "large-input" systems with external chests for each machine
