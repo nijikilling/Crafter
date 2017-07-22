@@ -138,6 +138,7 @@ function movement.get_current_pos()
 end
 
 function movement.go_to_pos(pos)
+  if (movement.current_direction == 3) then movement.rotate_right() end
   while movement.current_direction ~= 0 do movement.rotate_left() end
   local delta_x = pos["x"] - movement.cur_x
   local delta_y = pos["y"] - movement.cur_y
@@ -158,6 +159,7 @@ function movement.go_to_pos(pos)
       return false, "failed, unknown reasons" --ToDo log this shit
     end
   end
+  if (pos["orientation"] == 1) then movement.rotate_right() end
   while movement.current_direction ~= pos["orientation"] do movement.rotate_left() end
   return true
 end
@@ -188,11 +190,21 @@ chest_working.chest_name = "Сундук"
 chest_working.wrench_name = "Wrench"
 chest_working.time_to_reach_chest = 20
 
+function chest_working.query_nonempty(query)
+  for key, val in pairs(query) do
+    if (val > 0) then return true end
+  end
+  return false
+end
+
+
 function chest_working.find_in_chest_by_name(query, lootAll)
   local n = inv_cont.getInventorySize(sides.front)
   lootAll = lootAll or false
   if (lootAll ~= false) then
     query[-1] = 100000
+  else
+    query[-1] = 0
   end
   for i = 1, n do
     local info = inv_cont.getStackInSlot(sides.front, i)
@@ -206,11 +218,9 @@ function chest_working.find_in_chest_by_name(query, lootAll)
         query[info["label"]] = query[info["label"]] - (am - new_am)
       end
     end
-    if (amount <= 0) then 
-      return true, query
-    end
+    if (chest_working.query_nonempty(query) == false) then break end
   end
-  return false, query
+  return nil, query
 end
 
 function chest_working.have_adjanced_inventory()
@@ -251,9 +261,7 @@ function chest_working.get_item_in_chests_by_name(query, temp, lootAll)
   while (chest_working.have_adjanced_inventory() and cont == true) do
     local _, left = chest_working.find_in_chest_by_name(query, lootAll)
     query = left
-    for key, val in query do
-      if (val > 0) then cont = true end
-    end
+    cont = chest_working.query_nonempty(query)
     if (cont == true) then
       movement.move_up()
     end
@@ -264,9 +272,7 @@ function chest_working.get_item_in_chests_by_name(query, temp, lootAll)
       local _, left, needed_parts = craft_work.craft_items(name, amount) --depend only can be called for crafting tools
       query[name] = left
     end
-    for key, val in query do
-      if (val > 0) then cont = true end
-    end
+    cont = chest_working.query_nonempty(query)
     if (cont == true) then
       utils.terminate_algo("can't find or craft needed amount of stuff")
       --ToDo log needed stuff
