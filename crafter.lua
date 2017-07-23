@@ -234,20 +234,29 @@ end
 
 function chest_working.calc_in_all_chests_by_name(name)
   local am = 0
+  local res = {}
   while (chest_working.have_adjanced_inventory()) do
     local n = inv_cont.getInventorySize(sides.front)
     for i = 1, n do
       local info = inv_cont.getStackInSlot(sides.front, i)
       if (info ~= nil) then
-        if (info["label"] == name) then
-          am = am + info["size"] or 0
+        if (name ~= nil) then
+          if (info["label"] == name) then
+            am = am + info["size"] or 0
+          end
+        else
+          res[info["label"]] = (res[info["label"]] or 0) + info["size"]
         end
       end
     end
     movement.move_up()
   end
   movement.restore_y_coord()
-  return am
+  if (name ~= nil) then
+    return am
+  else
+    return res
+  end
 end
 
 --@pos-safe
@@ -778,14 +787,22 @@ function craft_work.get_recipe_ingredients_table(name, amount)
   return res, amount
 end
 
-function craft_work.build_craft_tree(name, amount, can_search_in_chests, success_table, fail_table, skip_store)
+craft_work.current_inventory = {}
+craft_work.current_loot_query = {}
+
+function craft_work.build_craft_tree(name, amount, can_search_in_chests, success_table, fail_table)
   utils.log("build_craft_tree", "Called with name = " .. name .. " and amount = " .. amount)
   if (can_search_in_chests) then
-    local am = chest_working.calc_in_all_chests_by_name(name)
+    local am = craft_work.current_inventory[name] or 0
     local k = utils.min(am, amount)
+    craft_work.current_inventory[name] = (craft_work.current_inventory[name] or 0) - k 
+    craft_work.current_loot_query[name] = (craft_work.current_loot_query[name] or 0) + k
     --chest_working.transfer_to_temporary_chests(name, k)
-    chest_working.get_item_in_chests_by_name({[name] = k})
+    --chest_working.get_item_in_chests_by_name({[name] = k})
     amount = amount - k
+  else
+    craft_work.current_inventory = chest_working.calc_in_all_chests_by_name(nil)
+    craft_work.current_loot_query = {}
   end
   local can_build = true
   if (amount > 0) then
@@ -807,7 +824,8 @@ function craft_work.build_craft_tree(name, amount, can_search_in_chests, success
       end
     end
   end
-  if ((skip_store or false) == true) then
+  if (can_search_in_chests ~= true) then
+    chest_working.get_item_in_chests_by_name(craft_work.current_loot_query)
     movement.remember_my_position()
     movement.go_to_pos(movement.temp_chest_pos)
     chest_working.store_all_items()
@@ -854,8 +872,8 @@ function craft_work.craft_recipe_prepared(recipe_data)
     while (amount > 0) do
       craft_work.setup_crafting_table(recipe) 
       local k = utils.min(amount, 64 - 64 % max_am)
-      crafting.craft(k) 
-      amount = amount - k
+      crafting.craft() 
+      amount = amount - 1    --Todo --depend optimise this to craft with relevant speed!
     end
     return true
   end
