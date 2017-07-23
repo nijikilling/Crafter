@@ -424,7 +424,7 @@ function chest_working.clear_slots(query_slots)
     calc[i] = 1
     if (name ~= nil) then
       t_sz = t_sz + 1
-      table.insert(slots, table_pos)
+      table.insert(slots, i)
     end
   end
   for i = 1, inv_size do
