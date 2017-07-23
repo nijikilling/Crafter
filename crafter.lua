@@ -252,7 +252,7 @@ end
 
 --@pos-safe
 function chest_working.get_item_in_chests_by_name(query, temp, lootAll)
-  utils.log("get_item_in_chests", "called with query = " .. serialization.serialize(query) .. " and temp = " .. temp) 
+  utils.log("get_item_in_chests", "called with query = " .. serialization.serialize(query) .. " and temp = " .. (temp or "nil")) 
   movement.remember_my_position()
   if (temp == nil or temp == false) then
     movement.go_to_pos(movement.common_chest_pos)
