@@ -396,6 +396,7 @@ function chest_working.clear_temporary_chests()
     movement.go_to_pos(movement.common_chest_pos)
     chest_working.store_all_items()
   end
+  movement.restore_my_position()
   --ToDo return sth
 end
 
