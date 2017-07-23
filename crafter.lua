@@ -690,7 +690,7 @@ end
 
 function craft_work.get_recipe(name)
   --ToDo make recipe priority list!
-  for _, recipe in ipairs(craft_work.recipe_table) do
+  for ind, recipe in ipairs(craft_work.recipe_table) do
     for item, amount in pairs(recipe["output"]) do
       if (item == name) then
         utils.log("craft_work", "Recipe found for name" .. name)
@@ -704,10 +704,10 @@ function craft_work.get_recipe(name)
                 ["consumable"] = "yes"
                 })
           end
-          recipe["ingredients"] = tmp
+          craft_work.recipe_table[ind]["ingredients"] = tmp
         end
         utils.log("recipe_processing", "After processing recipe is " .. serialization.serialize(recipe)) 
-        return recipe
+        return craft_work.recipe_table[ind]
       end
     end
   end
@@ -753,7 +753,7 @@ function craft_work.build_craft_tree(name, amount, can_search_in_chests, success
     local am = chest_working.calc_in_all_chests_by_name(name)
     local k = utils.min(am, amount)
     --chest_working.transfer_to_temporary_chests(name, k)
-    chest_working.get_item_in_chests_by_name({name = k})
+    chest_working.get_item_in_chests_by_name({[name] = k})
     amount = amount - k
   end
   local can_build = true
