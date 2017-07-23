@@ -894,7 +894,7 @@ function craft_work.craft_recipe_prepared(recipe_data)
       --machines.get_machine_output()
     end
   else
-    machines.fill_in_ingredients(recipe["ingredients"], true)
+    machines.fill_in_ingredients(recipe["ingredients"], true) --ToDo make this not fai at huge craft amounts
     machines.fill_in_ingredients(recipe["ingredients"], false)
     movement.move_up()
     chest_working.store_all_items()
