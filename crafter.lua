@@ -5,7 +5,7 @@ local serialization = require("serialization")
 
 local inv_cont = component.inventory_controller
 local tank_cont = component.tank_controller
-local crafting = component.crafting
+local crafting =component.crafting
 
 local movement = {}
 local chest_working = {}
@@ -413,23 +413,22 @@ function chest_working.swap_slots(i, j)
 end
 
 function chest_working.clear_slots(query_slots)
-  local slots = utils.deep_copy(query_slots)
   local inv_size = robot.inventorySize() - chest_working.reserved_slots
   local calc = {}
   local ind = 1
   local t_sz = 0
-  for table_pos, i in slots do
-    local name, _, _ = utils.inspect_slot(i)
+  local slots = {}
+  for table_pos, i in pairs(query_slots) do
+    local name, _, _ = chest_working.inspect_slot(i)
     if (name ~= nil) then
       calc[i] = 1
       t_sz = t_sz + 1
-    else
-      table.remove(slots, table_pos)
+      table.insert(slots, table_pos)
     end
   end
   for i = 1, inv_size do
     if (calc[i] == nil) then
-      local name, _, _ = utils.inspect_slot(i)
+      local name, _, _ = chest_working.inspect_slot(i)
       if (name == nil) then
         chest_working.swap_slots(i, slots[ind])
         ind = ind + 1
