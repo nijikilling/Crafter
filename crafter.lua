@@ -714,6 +714,7 @@ end
 
 
 function craft_work.get_recipe_ingredients_table(name, amount)
+  utils.log("get_reipe_ingredients_table", "called with name = " .. name .. " and amount = " .. amount)
   local recipe = craft_work.get_recipe(name)
   if (recipe == nil) then return nil end
   local out_am = recipe["output"][name]
@@ -731,6 +732,7 @@ function craft_work.get_recipe_ingredients_table(name, amount)
 end
 
 function craft_work.build_craft_tree(name, amount, can_search_in_chests, success_table, fail_table, skip_store)
+  utils.log("build_craft_tree", "Called with name = " .. name .. " and amount = " .. amount)
   if (can_search_in_chests) then
     local am = chest_working.calc_in_all_chests_by_name(name)
     local k = utils.min(am, amount)
