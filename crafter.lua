@@ -787,7 +787,7 @@ function craft_work.get_recipe_ingredients_table(name, amount)
   return res, amount
 end
 
-craft_work.current_inventory = {}
+craft_work.current_inventory = {} --ToDo refactor name
 craft_work.current_loot_query = {}
 
 function craft_work.build_craft_tree(name, amount, can_search_in_chests, success_table, fail_table)
@@ -830,6 +830,8 @@ function craft_work.build_craft_tree(name, amount, can_search_in_chests, success
     movement.go_to_pos(movement.temp_chest_pos)
     chest_working.store_all_items()
     movement.restore_my_position()
+    craft_work.current_loot_query = {}
+    craft_work.current_inventory = {}
   end
   if can_build == true then
     return true, success_table
