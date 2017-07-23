@@ -220,6 +220,7 @@ function chest_working.find_in_chest_by_name(query, lootAll)
     end
     if (chest_working.query_nonempty(query) == false) then break end
   end
+  query[-1] = nil
   return nil, query
 end
 
@@ -642,6 +643,19 @@ function utils.equip_tool_by_name(name)
     end
   end
   robot.select(prev_select)
+end
+
+function utils.deep_copy(t) --doesn't deal with metatables and stuff, just field-by-field copy
+  local res = nil
+  if (type(t) == 'table') then
+    res = {}
+    for key, val in pairs(t) do
+      res[utils.deep_copy(key)] = utils.deep_copy(val)
+    end
+  else
+    res = t
+  end
+  return res
 end
 
 function utils.bool_to_int(val)
