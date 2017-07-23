@@ -900,7 +900,7 @@ function craft_work.craft_recipe_prepared(recipe_data)
     movement.move_up()
     chest_working.store_all_items()
   end
-  os.sleep(recipe["machine"]["duration"] * recipe["amount"] + chest_working.time_to_reach_chest)
+  os.sleep(recipe["machine"]["duration"] * recipe_data["amount"] + chest_working.time_to_reach_chest)
   movement.go_to_pos(movement.temp_chest_pos)
   chest_working.store_all_items()
   movement.restore_my_position()
