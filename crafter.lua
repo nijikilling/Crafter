@@ -252,6 +252,7 @@ end
 
 --@pos-safe
 function chest_working.get_item_in_chests_by_name(query, temp, lootAll)
+  utils.log("get_item_in_chests", "called with query = " .. serialization.serialize(query) .. " and temp = " .. temp) 
   movement.remember_my_position()
   if (temp == nil or temp == false) then
     movement.go_to_pos(movement.common_chest_pos)
@@ -705,6 +706,7 @@ function craft_work.get_recipe(name)
           end
           recipe["ingredients"] = tmp
         end
+        utils.log("recipe_processing", "After processing recipe is " .. serialization.serialize(recipe)) 
         return recipe
       end
     end
