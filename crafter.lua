@@ -961,7 +961,7 @@ local function startup_lookaround()
     for j = 1, 15 do
       lookaround_inspect_block()
       success = movement.move_up()
-      if (success == false) then break end
+      if (success == 0) then break end
     end
     movement.restore_y_coord()
     local nv, _ = movement.move_right()
