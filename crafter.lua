@@ -1072,6 +1072,6 @@ startup_inventory()
 
 --startup_lookaround()
 
-craft_work.craft_items("Угольный шарик", 1)
+craft_work.craft_items("Промышленный алмаз", 1)
 
 print(craft_work.recipe_table)
