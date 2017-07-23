@@ -824,7 +824,7 @@ function craft_work.build_craft_tree(name, amount, can_search_in_chests, success
       end
     end
   end
-  if (can_search_in_chests ~= true) then
+  if ((can_search_in_chests ~= true) and (can_build == true)) then
     chest_working.get_item_in_chests_by_name(craft_work.current_loot_query)
     movement.remember_my_position()
     movement.go_to_pos(movement.temp_chest_pos)
@@ -865,6 +865,8 @@ end
 function craft_work.craft_recipe_prepared(recipe_data)
   movement.remember_my_position()
   local recipe = recipe_data["recipe"]
+  local ingredients_table = craft_work.get_recipe_ingredients_table(recipe_data["name"], recipe_data["amount"])
+  chest_working.get_item_in_chests_by_name(ingredients_table, true) 
   if (recipe["machine"] == nil) then
     local max_am = 1
     for key, val in pairs(recipe["output"]) do
@@ -873,24 +875,20 @@ function craft_work.craft_recipe_prepared(recipe_data)
     local amount = recipe_data["amount"] * max_am
     while (amount > 0) do
       craft_work.setup_crafting_table(recipe) 
-      local k = utils.min(amount, 64 - 64 % max_am)
       crafting.craft() 
       amount = amount - 1    --Todo --depend optimise this to craft with relevant speed!
     end
+    movement.go_to_pos(movement.temp_chest_pos)
+    chest_working.store_all_items()
+    movement.restore_my_position()
     return true
   end
   if (recipe["machine"]["needs_reinstall"] == true) then
     machines.go_and_reinstall_machine(recipe["machine"]["name"], recipe["machine"]["tier"])
   end
-  movement.go_to_pos(movement.common_chest_pos)
-  chest_working.store_all_items()
   local pos = machines.search_machine_by_name_and_tier(recipe["machine"]["name"], recipe["machine"]["tier"])
-  local ingredients_table = craft_work.get_recipe_ingredients_table(recipe_data["name"], recipe_data["amount"])
-  robot.select(1)
-  chest_working.get_item_in_chests_by_name(ingredients_table, true) 
   movement.go_to_pos(pos)
   movement.move_up()
-  movement.move_up()  --depend ASSUMING "large-input" systems with external chests for each machine
   if (recipe_data["amount"] < 3) then
     for i = 1, recipe_data["amount"] do
       machines.fill_in_ingredients(recipe["ingredients"], i == 1)
@@ -989,8 +987,7 @@ local function startup_lookaround()
     end
     movement.restore_y_coord()
     local nv, _ = movement.move_right()
-    val = nv
-    if (val == 0) then break end
+    if (nv == 0) then break end
   end
   movement.go_to_zero()
 end
