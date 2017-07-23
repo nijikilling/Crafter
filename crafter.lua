@@ -412,6 +412,33 @@ function chest_working.swap_slots(i, j)
   robot.select(prev_selected)
 end
 
+function chest_working.clear_slots(query_slots)
+  local slots = utils.deep_copy(query_slots)
+  local inv_size = robot.inventorySize() - chest_working.reserved_slots
+  local calc = {}
+  local ind = 1
+  local t_sz = 0
+  for table_pos, i in slots do
+    local name, _, _ = utils.inspect_slot(i)
+    if (name ~= nil) then
+      calc[i] = 1
+      t_sz = t_sz + 1
+    else
+      table.remove(slots, table_pos)
+    end
+  end
+  for i = 1, inv_size do
+    if (calc[i] == nil) then
+      local name, _, _ = utils.inspect_slot(i)
+      if (name == nil) then
+        chest_working.swap_slots(i, slots[ind])
+        ind = ind + 1
+        if (ind > t_sz) then return true end
+      end
+    end
+  end
+end
+
 --END OF CHEST_WORKING
 --MACHINES
 
@@ -791,21 +818,24 @@ end
 
 function craft_work.setup_crafting_table(recipe)
   local inv_size = robot.inventorySize() - chest_working.reserved_slots
+  chest_working.clear_slots({1, 2, 3, 5, 6, 7, 9, 10, 11})
   for ind, i in ipairs({1, 2, 3, 5, 6, 7, 9, 10, 11}) do
     local success = false
-    for j = i, inv_size do
-      local name, _, _ = chest_working.inspect_slot(j)
-      if (name == recipe["ingredients"][ind]["id"]) then
-        chest_working.swap_slots(ind, j)
-        success = true
-        break
+    for j = 1, inv_size do
+      if (j >= 12 or (j % 4 == 0)) then
+        local name, _, _ = chest_working.inspect_slot(j)
+        if (name == recipe["ingredients"][ind]["id"]) then
+          robot.select(j)
+          robot.transferTo(i, 1)
+          success = true
+          break
+        end
       end
     end
     if (success == false) then
       utils.terminate_algo("couldn't set up crafting table!")
     end
   end
-  
 end
 
 function craft_work.craft_recipe_prepared(recipe_data)
