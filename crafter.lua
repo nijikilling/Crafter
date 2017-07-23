@@ -389,7 +389,7 @@ function chest_working.clear_temporary_chests()
   while(robot_loots_something == true) do
     movement.go_to_pos(movement.temp_chest_pos)
     while(chest_working.have_adjanced_inventory()) do
-      chest_working.find_in_chest_by_name(" ", -1, true) --loot all from chest 
+      chest_working.find_in_chest_by_name({}, true) --loot all from chest 
       movement.move_up()
     end
     robot_loots_something = chest_working.inventory_nonempty()
