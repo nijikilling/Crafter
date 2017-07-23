@@ -413,6 +413,7 @@ function chest_working.swap_slots(i, j)
 end
 
 function chest_working.clear_slots(query_slots)
+  utils.log("clear_slots", "called!")
   local inv_size = robot.inventorySize() - chest_working.reserved_slots
   local calc = {}
   local ind = 1
@@ -420,8 +421,8 @@ function chest_working.clear_slots(query_slots)
   local slots = {}
   for table_pos, i in pairs(query_slots) do
     local name, _, _ = chest_working.inspect_slot(i)
+    calc[i] = 1
     if (name ~= nil) then
-      calc[i] = 1
       t_sz = t_sz + 1
       table.insert(slots, table_pos)
     end
@@ -430,7 +431,7 @@ function chest_working.clear_slots(query_slots)
     if (calc[i] == nil) then
       local name, _, _ = chest_working.inspect_slot(i)
       if (name == nil) then
-        chest_working.swap_slots(i, slots[ind])
+        chest_working.swap_slots(slots[ind], i)
         ind = ind + 1
         if (ind > t_sz) then return true end
       end
