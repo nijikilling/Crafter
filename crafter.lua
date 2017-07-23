@@ -543,7 +543,6 @@ function machines.fill_in_by_name(name, amount)
     end
   end
   robot.select(prev_selected)
-  utils.terminate_algo("test_terminate")
   return true
 end
 
