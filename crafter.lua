@@ -252,7 +252,7 @@ end
 
 --@pos-safe
 function chest_working.get_item_in_chests_by_name(query, temp, lootAll)
-  utils.log("get_item_in_chests", "called with query = " .. serialization.serialize(query) .. " and temp = " .. (temp or "nil")) 
+  utils.log("get_item_in_chests", "called with query = " .. serialization.serialize(query) .. " and temp = " .. utils.bool_to_str(temp or false)) 
   movement.remember_my_position()
   if (temp == nil or temp == false) then
     movement.go_to_pos(movement.common_chest_pos)
@@ -688,6 +688,10 @@ end
 
 function utils.bool_to_int(val)
   if (val) then return 1 else return 0 end
+end
+
+function utils.bool_to_str(val)
+  if (val) then return "true" else return "false" end
 end
 
 function utils.min(a, b)
