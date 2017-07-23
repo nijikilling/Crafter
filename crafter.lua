@@ -363,7 +363,7 @@ function chest_working.transfer_to_temporary_chests(name, amount)
   local last_amount = 0
   while (last_amount ~= amount) do
     last_amount = amount
-    local _, left = chest_working.get_item_in_chests_by_name({name = amount}) --pos-safe
+    local _, left = chest_working.get_item_in_chests_by_name({[name] = amount}) --pos-safe
     amount = left
     if (amount ~= last_amount) then --ToDo depend rewrite for list-transfer too!
       movement.go_to_pos(movement.temp_chest_pos)
@@ -900,7 +900,7 @@ function craft_work.craft_recipe_prepared(recipe_data)
     movement.move_up()
     chest_working.store_all_items()
   end
-  os.sleep(recipe["duration"] * recipe["amount"] + chest_working.time_to_reach_chest)
+  os.sleep(recipe["machine"]["duration"] * recipe["amount"] + chest_working.time_to_reach_chest)
   movement.go_to_pos(movement.temp_chest_pos)
   chest_working.store_all_items()
   movement.restore_my_position()
