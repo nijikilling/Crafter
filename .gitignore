@@ -1,2 +1,4 @@
-*.lua
+test.lua
+recipe_manager.lua
 log.txt
+recipes.txt
