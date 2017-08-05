@@ -5,10 +5,11 @@ local serialization = require("serialization")
 
 local inv_cont = component.inventory_controller
 local tank_cont = component.tank_controller
-local crafting =component.crafting
+local crafting = component.crafting
 
 local movement = {}
 local chest_working = {}
+local tank_working = {}
 local machines = {}
 local utils = {}
 local craft_work = {}
@@ -30,6 +31,8 @@ movement.cur_z = 0
 movement.position_stack = {}
 movement.common_chest_pos = nil
 movement.temp_chest_pos = nil
+movement.common_tank_pos = nil
+movement.temp_tank_pos = nil
 
 function movement.move_with_errors_handling(n, move_function)
   
@@ -168,6 +171,24 @@ function movement.remember_my_position()
   table.insert(movement.position_stack, movement.get_current_pos())
 end
 
+function movement.go_to_chest(temp)
+  temp = temp or false
+  if (temp == true) then 
+    movement.go_to_pos(movement.temp_chest_pos)
+  else
+    movement.go_to_pos(movement.common_chest_pos)
+  end
+end
+
+function movement.go_to_tank(temp)
+  temp = temp or false
+  if (temp == true) then 
+    movement.go_to_pos(movement.temp_tank_pos)
+  else
+    movement.go_to_pos(movement.common_tank_pos)
+  end
+end
+
 function movement.go_to_zero()
   return movement.go_to_pos({["x"]=0, ["y"]=0, ["z"]=0, ["orientation"]=0})
 end
@@ -263,11 +284,7 @@ end
 function chest_working.get_item_in_chests_by_name(query, temp, lootAll)
   utils.log("get_item_in_chests", "called with query = " .. serialization.serialize(query) .. " and temp = " .. utils.bool_to_str(temp or false)) 
   movement.remember_my_position()
-  if (temp == nil or temp == false) then
-    movement.go_to_pos(movement.common_chest_pos)
-  else
-    movement.go_to_pos(movement.temp_chest_pos)
-  end
+  movement.go_to_chest(temp)
   local cont = true
   while (chest_working.have_adjanced_inventory() and cont == true) do
     local _, left = chest_working.find_in_chest_by_name(query, lootAll)
@@ -449,8 +466,120 @@ function chest_working.clear_slots(query_slots)
   end
 end
 
+
 --END OF CHEST_WORKING
+--TANK_WORKING
+
+function tank_working.store_all_tanks(temp)     --depend REWRITE(as chest_working) to work with queries for speeding up
+  return nil * nil
+end
+
+function tank_working.get_tank_info()
+  local t = tank_cont.getFluidInTank(sides.front)
+  return t["label"], t["amount"], t["capacity"]
+end
+
+function tank_working.fill(ind, amount)
+  local prev_selected = robot.selectTank()
+  robot.select(ind)
+  robot.fill(amount)
+  robot.selectTank(prev_selected)
+end
+
+function tank_working.get_internal_tank_info(ind)
+  local t = tank_cont.getFluidInInternalTank(ind)[1]
+  return t["label"], t["amount"], t["capacity"]
+end
+
+function tank_working.get_internal_tank_amount()
+  return robot.tankCount()
+end
+
+function tank_working.suck_to_internal_tank(ind, amount)
+  local prev_selected = robot.selectTank()
+  robot.selectTank(ind)
+  robot.drain(amount)
+  robot.selectTank(prev_selected)
+end
+
+function tank_working.suck_from_tank(query_amount)
+  local name, am, max_am = tank_working.get_tank_info()
+  for i = 1, tank_working.get_internal_tank_amount() do
+    local cur_name, cur_am, cur_max_am = tank_working.get_internal_tank_info(i)
+    if (cur_name == name) and (query_amount > 0) then
+      local k = utils.min(cur_max_am - cur_am, query_amount)
+      tank_working.suck_to_internal_tank(i, k) 
+      query_amount -= k
+    end
+  end
+  for i = 1, tank_working.get_internal_tank_amount() do
+    local cur_name, cur_am, cur_max_am = tank_working.get_internal_tank_info(i)
+    if (cur_name == nil) and (query_amount > 0) then
+      local k = utils.min((cur_max_am or 16000) - (cur_am or 0), query_amount) --depend hardcoded values
+      tank_working.suck_to_internal_tank(i, k)
+      query_amount -= k
+    end
+  end
+  return query_amount --ToDo terminate_algo, because this is supposed to work always
+end
+
+function tank_working.get_liquids_needed(query, temp)
+  movement.remember_my_position()
+  movement.go_to_tank(temp)
+  while (tank_working.have_adjanced_tank()) do
+    local cur_name, cur_am, max_am = tank_working.get_tank_info()
+    if (query[cur_name] ~= nil and query[cur_name] > 0) then
+      local k = utils.min(query[cur_name], cur_am)
+      local am = tank_working.suck_from_tank(k) 
+      query[cur_name] -= am
+    end
+    movement.move_right()
+  end
+  movement.restore_my_position()
+  return query
+end
+
+function tank_working.store_liquid_in_current_tank(query_name, query_amount)
+  local name, am, max_am = tank_working.get_tank_info()
+  if (name == nil) then name = query_name end
+  for i = 1, tank_working.get_internal_tank_amount() do
+    local cur_name, cur_am, cur_max_am = tank_working.get_internal_tank_info()
+    if (cur_name == name) then
+      local k = math.min(cur_am, max_am - am, query_amount) --depend don't know whether math should be imported manually
+      tank_working.fill(i, k)
+      am = am + k
+      query_amount = query_amount - k
+    end
+  end
+  return query_amount
+end
+
+function tank_working.store_liquids_needed(query, temp)
+  movement.remember_my_position()
+  movement.go_to_tank(temp)
+  while (tank_working.have_adjanced_tank()) do
+    local cur_name, cur_am, max_am = tank_working.get_tank_info()
+    if (cur_name ~= nil) and (query[cur_name] ~= nil) then
+      query[cur_name] = tank_working.store_liquid_in_current_tank(cur_name, query[cur_name])
+    end
+    movement.move_right()
+  end
+  movement.go_to_tank(temp)
+  while (tank_working.have_adjanced_tank()) do
+    local cur_name, cur_am, max_am = tank_working.get_tank_info()
+    if (cur_name == nil) then
+      local liquid_name = utils.get_first_nonempty_request(query) 
+      query[liquid_name] = tank_working.store_liquid_in_current_tank(liquid_name, query[liquid_name])
+    end
+    movement.move_right()
+  end
+  movement.restore_my_position()
+  return query
+end
+
+--END OF TANK_WORKING
 --MACHINES
+
 
 machines.machines = {}
 
@@ -707,6 +836,12 @@ function utils.min(a, b)
   if (a < b) then return a else return b end
 end
 
+function utils.get_first_nonempty_request(query)
+  for key, val in pairs(query) do
+    if (val > 0) then return key end
+  end
+end
+
 --END OF UTILS
 --CRAFTING!
 
@@ -756,9 +891,12 @@ end
 
 --recipe structure:
 --ingredients(in needed order)
-----ingredient ID
+----ingredient ID(currently it's localized name)
 ----amount
 ----consumable
+--liquid(can be nil)
+----liquid ID(currently it's localized name)
+----amount(mB)
 --machine
 ----name
 ----tier
@@ -767,6 +905,7 @@ end
 --output(s)
 ----item
 ----amount
+
 
 
 function craft_work.get_recipe_ingredients_table(name, amount)
@@ -844,20 +983,22 @@ function craft_work.setup_crafting_table(recipe)
   local inv_size = robot.inventorySize() - chest_working.reserved_slots
   chest_working.clear_slots({1, 2, 3, 5, 6, 7, 9, 10, 11})
   for ind, i in ipairs({1, 2, 3, 5, 6, 7, 9, 10, 11}) do
-    local success = false
-    for j = 1, inv_size do
-      if (j >= 12 or (j % 4 == 0)) then
-        local name, _, _ = chest_working.inspect_slot(j)
-        if (name == recipe["ingredients"][ind]["id"]) then
-          robot.select(j)
-          robot.transferTo(i, 1)
-          success = true
-          break
+    if (recipe["ingredients"][ind]["id"] ~= nil) then
+      local success = false
+      for j = 1, inv_size do
+        if (j >= 12 or (j % 4 == 0)) then
+          local name, _, _ = chest_working.inspect_slot(j)
+          if (name == recipe["ingredients"][ind]["id"]) then
+            robot.select(j)
+            robot.transferTo(i, 1)
+            success = true
+            break
+          end
         end
       end
-    end
-    if (success == false) then
-      utils.terminate_algo("couldn't set up crafting table!")
+      if (success == false) then
+        utils.terminate_algo("couldn't set up crafting table!")
+      end
     end
   end
 end
@@ -958,7 +1099,7 @@ local function lookaround_inspect_block()
 end
 
 
-local function startup_inventory() --ToDo add liquids 
+local function startup_inventory() --ToDo add liquids and care errors 
   movement.remember_my_position()
   movement.go_to_zero() 
   movement.move_back(15)
@@ -966,7 +1107,13 @@ local function startup_inventory() --ToDo add liquids
   movement.common_chest_pos = movement.get_current_pos()
   movement.move_left(2)
   movement.temp_chest_pos = movement.get_current_pos()
-  movement.move_right(2)
+  movement.move_down()
+  movement.move_left(15 - 2)
+  movement.temp_tank_pos = movement.get_current_pos()
+  movement.go_to_pos(movement.common_chest_pos)
+  movement.move_down()
+  movement.common_tank_pos = movement.get_current_pos()
+  movement.move_up()
   chest_working.clear_temporary_chests()
   movement.restore_my_position()
 end
