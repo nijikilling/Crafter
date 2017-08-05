@@ -1,4 +1,5 @@
 test.lua
 recipe_manager.lua
 log.txt
+*.bak
 recipes.txt
