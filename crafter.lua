@@ -509,7 +509,7 @@ function tank_working.suck_from_tank(query_amount)
     if (cur_name == name) and (query_amount > 0) then
       local k = utils.min(cur_max_am - cur_am, query_amount)
       tank_working.suck_to_internal_tank(i, k) 
-      query_amount -= k
+      query_amount = query_amount - k
     end
   end
   for i = 1, tank_working.get_internal_tank_amount() do

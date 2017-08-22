@@ -1,23 +1,10 @@
 local framework = {}
 
-function framework.run_all_test_suits()
-  --depend
-end
-
-function framework.run_test(test)
-  test()
-  framework.unload_modules()
-end
-
 function framework.unload_modules()
   local names = {"component", "crafting", "inventory", "inventory_controller", "robot", "serialization", "sides", "test_utils", "world_mock"}
   for _, pack_name in ipairs(names) do
     package.loaded[pack_name] = nil
   end
-end
-
-function framework.equal_objects()
-  
 end
 
 function framework.deep_copy(t) --doesn't deal with metatables and stuff, just field-by-field copy

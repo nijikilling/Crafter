@@ -36,7 +36,8 @@ function inventory.space(inv, slot)
 end
 
 function inventory.receive(target_inv, from_inv, slot, count, from_pos)
-  --from_pos is workaround for robot's selected slot mechanic - it actually stores items from it, not from 1th slot
+  -- transfers up to [count] items from [from_inv]'s [slot] to [target_inv] 
+  --[from_pos] is workaround for robot's selected slot mechanic - it actually stores items from it, not from 1th slot
   from_pos = from_pos or 1
   local am = math.min(count, from_inv[slot].count)
   local q = false
@@ -44,7 +45,7 @@ function inventory.receive(target_inv, from_inv, slot, count, from_pos)
   for ind = 1, target_inv.n do
     local i = (ind + from_pos - 2) % target_inv.n + 1
     if (am == 0) then return true end
-    if (from_inv[slot].label == from_inv[slot].label) then
+    if (target_inv[i].label == from_inv[slot].label) then
       local k = math.min(inventory.space(target_inv, i), am)
       target_inv[i].count = target_inv[i].count + k
       from_inv[slot].count = from_inv[slot].count - k
@@ -55,8 +56,9 @@ function inventory.receive(target_inv, from_inv, slot, count, from_pos)
   for ind = 1, target_inv.n do
     local i = (ind + from_pos - 2) % target_inv.n + 1
     if (am == 0) then return true end
-    if (target_inv["label"] == nil) then
+    if (target_inv[i].label == nil) then
       target_inv[i].count = target_inv[i].count + am
+      target_inv[i].label = from_inv[slot].label
       from_inv[slot].count = from_inv[slot].count - am
       am = 0
       q = true
