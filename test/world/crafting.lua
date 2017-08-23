@@ -13,12 +13,12 @@ function crafting.craft(count)
   for _, i in ipairs(indexes) do
     local cur_ingred = {}
     cur_ingred.id = robot.inv[i].label
-    min_slot_count = math.min(robot.inv[i].count or 64, min_slot_count)
+    min_slot_count = math.min(robot.inv:get_slot(i):get_count() or 64, min_slot_count)
   end
   for _, recipe in ipairs(world_mock.recipes) do
     local q = true
-    for i, ingred in ipairs(recipe["ingredients"]) do
-      if (ingred.id ~= ingred_table[i].id) then
+    for i, ingred in ipairs(recipe["ingredients"]) do --searching recipe
+      if (ingred.id ~= ingred_table[i].id) then 
         q = false
       end
     end
@@ -30,12 +30,14 @@ function crafting.craft(count)
       end
       local times_crafted = math.min(min_slot_count, count / output_size)
       for _, i in ipairs(indexes) do
-        if (robot.inv[i].label ~= nil) then
-          robot.inv[i] = inventory.decrease_count(robot.inv, i, times_crafted)
+        if (robot.inv:get_slot(i):get_id() ~= nil) then
+          robot.inv[i]:get_slot(i):takeaway(times_crafted)
         end
       end
       for key, val in pairs(recipe["output"]) do
-        inventory.receive_inventory(robot.inv, {{"label" = key, "count" = val * output_size}, n = 1}, robot.select())
+        robot.inv:receive(
+          inventory.c_slot.new({["id"] = key, ["count"] = val * output_size}), 
+          robot.select())
       end
       return true
     end
