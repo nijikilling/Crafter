@@ -8,12 +8,12 @@ local sides      = require("sides")
 local robot_name = "Creatix"
 local robot_level = 1.36
 local robot_inv_size = 64
-local robot_tool = inventory.construct_slot({["label"] = "Wrench", ["count"] = 1})
+local robot_tool = inventory.c_slot.new({["label"] = "Wrench", ["count"] = 1})
 local robot_tank_cnt = 1
 local robot_dir = 1
 local robot_pos = {x = 0, y = 0, z = 0}
 
-robot.inv = inventory.construct_inventory(robot_inv_size) 
+robot.inv = inventory.c_inv.new(robot_inv_size) 
 
 local directions = {{x = 1, y = 0, z = 0}, 
                     {x = 0, y = 0, z = -1}, 
@@ -76,31 +76,32 @@ end
 
 function robot.select(slot)
   if (slot == nil) then return selected_slot end
-  if (slot > robot_inv_size) or (slot < 1) then test_utils.raise_error("robot slot out of range!") end
+  if (slot > robot.inventorySize()) or (slot < 1) then test_utils.raise_error("robot slot out of range!") end
   selected_slot = slot
 end
 
 function robot.inventorySize()
-  return robot_inv_size
+  return robot.inv:get_size()
 end
 
 function robot.count(slot)
-  return inventory.count(robot.inv, slot) 
+  return robot.inv:get_slot(slot):get_count() 
 end
 
 function robot.space(slot)
-  return inventory.space(robot.inv, slot)
+  return robot.inv:get_slot(slot):get_space()
 end
 
-function robot.transferTo(slot, count)
+function robot.transferTo(slot, count) --depend
   local cur = robot.select()
   if (cur == count) then return end
-  if (inventory.count(robot.inv, cur) == 0) or (inventory.count(robot.inv, slot) == 0) then
-    robot.inv[cur], robot.inv[slot] = robot.inv[slot], robot.inv[cur]
+  if (robot.inv:get_slot(cur):get_count() == 0) or 
+(robot.inv:get_slot(slot):get_count() == 0) then
+    robot.inv:swap_slots(cur, slot)
     return true
   end
-  if (inventory.count(robot.inv, slot) <= count) then
-    robot.inv[cur], robot.inv[slot] = robot.inv[slot], robot.inv[cur]
+  if (robot.inv:get_slot(cur):get_count() <= count) then
+    robot.inv:swap_slots(cur, slot)
     return true
   end
   test_utils.raise_error("transferTo tries partial transfer to nonempty slot!")
@@ -113,7 +114,7 @@ local function _drop(block, count)
     test_utils.raise_error("_drop tries to throw items into " .. (block.type or "nil"))
   end
   local num = robot.select()
-  local q = inventory.receive(block.inv, robot.inv, num, count)
+  local q = block.inv:receive(robot.inv:get_slot(num), count, 1) --ToDo hardcoded
   world_mock.update_inv_links()
   return q
 end
@@ -131,14 +132,14 @@ function robot.dropDown(count)
 end
 
 function robot._place(block_pos, side, sneaky)
-  local slot_obj = robot.inv[robot.select()] --yes, we can use slot_obj here
+  local slot_obj = robot.inv:get_slot(robot.select()) --yes, we can use slot_obj here
   if (slot_obj.count == 0) then return false, "empty slot!" end
   local k = world_mock.get_object_by_pos(block_pos)
   if (k ~= nil) then return false, "attempt to place block not in the air but in " .. k.type end
-  local res = world_mock.get_object_blueprint_by_name(slot_obj.label)
+  local res = world_mock.get_object_blueprint_by_name(slot_obj:get_id())
   res.pos = block_pos
   world_mock.add_object(res)
-  slot_obj.count = slot_obj.count - 1
+  slot_obj:takeaway(1)
   return true
 end
 
@@ -157,10 +158,10 @@ end
 local function _swing(block, side, sneaky)
   if (block == nil) then return false end
   if (block.type == "machine") and (robot_tool.label == "Wrench") then
-    inventory.receive_inventory(robot.inv, block.inv)
-    inventory.receive_inventory(robot.inv, block.out_inv)
+    robot.inv:receive_inventory(block.inv)
+    robot.inv:receive_inventory(block.out_inv)
     world_mock.erase_block(block) 
-    inventory.receive(robot.inv, {inventory.construct_slot(block), n = 1}, 1, 1) --ToDo workaround for create_temp_inventory
+    robot.inv:receive(inventory.c_slot.new(block), 1, 1) 
     return true, "block"
   end
   if (block.type == "creature") then

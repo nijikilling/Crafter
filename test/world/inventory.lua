@@ -149,6 +149,12 @@ function inventory.c_slot.get_id(slot_obj)
   return rawget(slot_obj, "id")
 end
 
+function inventory.c_slot.set_slot(slot_obj, new_slot)
+  slot_obj["id"] = new_slot["id"]
+  slot_obj["count"] = new_slot["count"]
+end
+
+
 function inventory.c_slot.takeaway(slot_obj, count)
   slot_obj["count"] = slot_obj["count"] - count
   if (slot_obj["count"] == 0) then 
